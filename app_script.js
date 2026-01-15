@@ -619,6 +619,42 @@ function setupDrawingCanvas(canvas) {
   }, { passive: false });
 }
 
+// Enable pinch‑to‑zoom on a canvas element.  This allows children to
+// zoom in and out using two fingers on touch devices.  The scale is
+// clamped between 0.5 and 3 for usability.  The zoom state is stored
+// on the canvas element via a data attribute.  The transform origin
+// must be set (in CSS) to top left for scaling to behave predictably.
+function enablePinchZoom(canvas) {
+  let initialDistance = null;
+  let initialScale = 1;
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length === 2) {
+      e.preventDefault();
+      const [t1, t2] = e.touches;
+      initialDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      initialScale = parseFloat(canvas.dataset.scale) || 1;
+    }
+  }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches.length === 2 && initialDistance) {
+      e.preventDefault();
+      const [t1, t2] = e.touches;
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      let newScale = initialScale * (dist / initialDistance);
+      // clamp the scale for usability
+      newScale = Math.max(0.5, Math.min(3, newScale));
+      canvas.dataset.scale = newScale;
+      canvas.style.transform = `scale(${newScale})`;
+    }
+  }, { passive: false });
+  canvas.addEventListener('touchend', (e) => {
+    // Reset initial distance when fingers lifted
+    if (!e.touches || e.touches.length < 2) {
+      initialDistance = null;
+    }
+  });
+}
+
 // ===================== Games: Sorting Game =====================
 // Initialise the sorting game by populating the drop area and draggable
 // area with shapes.  Children drag the shapes from the draggable area
@@ -751,43 +787,19 @@ window.addEventListener('DOMContentLoaded', () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
 
-    // Zoom controls for colour and draw canvases.  Each section has
-    // its own zoom state.  Buttons adjust a scale factor which is
-    // applied via CSS transform to the canvas.  Transform origin is
-    // set to top left so that zooming expands from the top corner.
-    const colorZoomInBtn = document.getElementById('color-zoom-in');
-    const colorZoomOutBtn = document.getElementById('color-zoom-out');
-    const drawZoomInBtn = document.getElementById('draw-zoom-in');
-    const drawZoomOutBtn = document.getElementById('draw-zoom-out');
+    // Enable pinch‑to‑zoom on the drawing and colouring canvases.  We
+    // set the transform origin to the top left so that the canvas
+    // scales outward from the corner.  The buttons for zooming were
+    // removed from the HTML; pinch gestures now control zoom.
     const colorCanvasEl = document.getElementById('color-canvas');
     const drawCanvasEl = document.getElementById('draw-canvas');
     if (colorCanvasEl) {
       colorCanvasEl.style.transformOrigin = 'top left';
+      enablePinchZoom(colorCanvasEl);
     }
     if (drawCanvasEl) {
       drawCanvasEl.style.transformOrigin = 'top left';
-    }
-    let colorZoom = 1;
-    let drawZoom = 1;
-    if (colorZoomInBtn && colorZoomOutBtn && colorCanvasEl) {
-      colorZoomInBtn.addEventListener('click', () => {
-        colorZoom = Math.min(3, colorZoom + 0.2);
-        colorCanvasEl.style.transform = `scale(${colorZoom})`;
-      });
-      colorZoomOutBtn.addEventListener('click', () => {
-        colorZoom = Math.max(0.5, colorZoom - 0.2);
-        colorCanvasEl.style.transform = `scale(${colorZoom})`;
-      });
-    }
-    if (drawZoomInBtn && drawZoomOutBtn && drawCanvasEl) {
-      drawZoomInBtn.addEventListener('click', () => {
-        drawZoom = Math.min(3, drawZoom + 0.2);
-        drawCanvasEl.style.transform = `scale(${drawZoom})`;
-      });
-      drawZoomOutBtn.addEventListener('click', () => {
-        drawZoom = Math.max(0.5, drawZoom - 0.2);
-        drawCanvasEl.style.transform = `scale(${drawZoom})`;
-      });
+      enablePinchZoom(drawCanvasEl);
     }
     // Reset the sorting game when the restart button is clicked
     const resetBtn = document.getElementById('game-reset-btn');
