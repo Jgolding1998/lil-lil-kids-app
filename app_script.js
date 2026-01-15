@@ -21,7 +21,8 @@
 //   - hex/textColor: for colour tiles, the background colour and optional text colour
 //   - sound: optional URL to a sound file to play on click (animals)
 const packs = {
-  Colours: [
+  // Use US spelling “Colors” instead of “Colours” for consistency
+  Colors: [
     { name: 'Red', hex: '#E74C3C', textColor: '#FFFFFF' },
     { name: 'Blue', hex: '#3498DB', textColor: '#FFFFFF' },
     { name: 'Green', hex: '#27AE60', textColor: '#FFFFFF' },
@@ -170,8 +171,8 @@ function buildPackCards() {
         break;
       }
     }
-    // For Colours pack, use the first colour's hex value
-    if (packName === 'Colours' && items.length > 0) {
+    // For Colors pack, use the first colour's hex value
+    if (packName === 'Colors' && items.length > 0) {
       cardColour = items[0].hex;
     }
     // For Letters and Numbers, no image or colour – we'll leave blank
@@ -283,7 +284,7 @@ function renderCurrentItem() {
   const wrapper = document.createElement('div');
   wrapper.classList.add('item-view');
   // For colours, render a large coloured tile
-  if (currentPackName === 'Colours' && item.hex) {
+  if (currentPackName === 'Colors' && item.hex) {
     wrapper.classList.add('colour-view');
     wrapper.style.backgroundColor = item.hex;
     wrapper.style.color = item.textColor;
@@ -416,9 +417,10 @@ function enterSection(section) {
         setupDrawingCanvas(document.getElementById('draw-canvas'));
         break;
       case 'games':
+        // Show the games section and display the game menu.  The specific
+        // game areas will be hidden until a game is chosen.
         document.getElementById('games-section').hidden = false;
-        // Initialise the sorting game each time the section is entered
-        initSortGame();
+        showGameMenu();
         break;
       default:
         // If unknown section, return to menu
@@ -443,6 +445,189 @@ function returnToMenu() {
   if (footer) footer.style.display = '';
 }
 
+    /**
+     * Show the games menu. Hides any active game areas and back button. This
+     * function is called when the Games section is first entered or when
+     * returning from a specific game.
+     */
+    function showGameMenu() {
+      const menu = document.getElementById('game-menu');
+      const sortGame = document.getElementById('sort-game');
+      const memoryGame = document.getElementById('memory-game');
+      const backBtn = document.getElementById('game-back-btn');
+      const fruitGame = document.getElementById('fruit-game');
+      const habitatGame = document.getElementById('habitat-game');
+      const fruitReset = document.getElementById('fruit-reset-btn');
+      const habitatReset = document.getElementById('habitat-reset-btn');
+    // Hide reset buttons and success messages when showing the game menu
+    const sortReset = document.getElementById('game-reset-btn');
+    const memoryReset = document.getElementById('memory-reset-btn');
+    const sortSuccess = document.getElementById('game-success-message');
+    const memSuccess = document.getElementById('memory-success-message');
+      if (menu) menu.hidden = false;
+      if (sortGame) sortGame.hidden = true;
+      if (memoryGame) memoryGame.hidden = true;
+      if (fruitGame) fruitGame.hidden = true;
+      if (habitatGame) habitatGame.hidden = true;
+      if (backBtn) backBtn.hidden = true;
+    if (sortReset) sortReset.hidden = true;
+    if (memoryReset) memoryReset.hidden = true;
+    if (fruitReset) fruitReset.hidden = true;
+    if (habitatReset) habitatReset.hidden = true;
+    if (sortSuccess) sortSuccess.style.display = 'none';
+    if (memSuccess) memSuccess.style.display = 'none';
+    }
+
+    /**
+     * Enter a specific mini‑game.  When a child selects a game from the
+     * games menu, this function hides the menu, shows the chosen game
+     * container and initialises the game logic.  A back button is shown
+     * so that children can return to the game menu at any time.
+     * @param {string} gameName Either 'sort' or 'memory'
+     */
+    function enterGame(gameName) {
+      const menu = document.getElementById('game-menu');
+      const sortGame = document.getElementById('sort-game');
+      const memoryGame = document.getElementById('memory-game');
+      const backBtn = document.getElementById('game-back-btn');
+      if (menu) menu.hidden = true;
+      if (backBtn) backBtn.hidden = false;
+      const sortReset = document.getElementById('game-reset-btn');
+      const memoryReset = document.getElementById('memory-reset-btn');
+      const fruitReset = document.getElementById('fruit-reset-btn');
+      const habitatReset = document.getElementById('habitat-reset-btn');
+      const fruitGame = document.getElementById('fruit-game');
+      const habitatGame = document.getElementById('habitat-game');
+      if (gameName === 'sort') {
+        if (sortGame) sortGame.hidden = false;
+        if (memoryGame) memoryGame.hidden = true;
+        if (fruitGame) fruitGame.hidden = true;
+        if (habitatGame) habitatGame.hidden = true;
+        // Show sort reset button and hide other reset buttons
+        if (sortReset) sortReset.hidden = false;
+        if (memoryReset) memoryReset.hidden = true;
+        if (fruitReset) fruitReset.hidden = true;
+        if (habitatReset) habitatReset.hidden = true;
+        initSortGame();
+      } else if (gameName === 'memory') {
+        if (memoryGame) memoryGame.hidden = false;
+        if (sortGame) sortGame.hidden = true;
+        if (fruitGame) fruitGame.hidden = true;
+        if (habitatGame) habitatGame.hidden = true;
+        // Show memory reset button and hide other reset buttons
+        if (memoryReset) memoryReset.hidden = false;
+        if (sortReset) sortReset.hidden = true;
+        if (fruitReset) fruitReset.hidden = true;
+        if (habitatReset) habitatReset.hidden = true;
+        initMemoryGame();
+      } else if (gameName === 'fruit') {
+        if (fruitGame) fruitGame.hidden = false;
+        if (sortGame) sortGame.hidden = true;
+        if (memoryGame) memoryGame.hidden = true;
+        if (habitatGame) habitatGame.hidden = true;
+        // Show fruit reset button and hide others
+        if (fruitReset) fruitReset.hidden = false;
+        if (sortReset) sortReset.hidden = true;
+        if (memoryReset) memoryReset.hidden = true;
+        if (habitatReset) habitatReset.hidden = true;
+        initFruitGame();
+      } else if (gameName === 'habitat') {
+        if (habitatGame) habitatGame.hidden = false;
+        if (sortGame) sortGame.hidden = true;
+        if (memoryGame) memoryGame.hidden = true;
+        if (fruitGame) fruitGame.hidden = true;
+        // Show habitat reset button and hide others
+        if (habitatReset) habitatReset.hidden = false;
+        if (sortReset) sortReset.hidden = true;
+        if (memoryReset) memoryReset.hidden = true;
+        if (fruitReset) fruitReset.hidden = true;
+        initHabitatGame();
+      }
+    }
+
+    /**
+     * Return from a mini‑game back to the games menu.  Hides all game
+     * containers and shows the menu again.  Used by the back button.
+     */
+    function returnToGamesMenu() {
+      showGameMenu();
+    }
+
+    /**
+     * Initialise the memory matching game.  Creates a grid of cards, each
+     * containing a hidden shape image.  Children can tap cards to reveal
+     * them; matching pairs disappear while mismatches flip back after a
+     * short delay.  When all pairs have been matched a success message
+     * appears.  A restart button resets the game.
+     */
+    function initMemoryGame() {
+      const shapes = ['circle','square','triangle','rectangle','star','heart'];
+      // Create an array with each shape twice for matching
+      const pairs = shapes.concat(shapes);
+      // Shuffle the array
+      const shuffled = pairs.sort(() => Math.random() - 0.5);
+      const board = document.getElementById('memory-board');
+      const successMsg = document.getElementById('memory-success-message');
+      if (!board) return;
+      board.innerHTML = '';
+      let firstCard = null;
+      let lockBoard = false;
+      let matches = 0;
+      // Hide success message at start
+      if (successMsg) successMsg.style.display = 'none';
+      shuffled.forEach(shape => {
+        const card = document.createElement('div');
+        card.classList.add('memory-card');
+        card.dataset.shape = shape;
+        // Create image element and hide initially
+        const img = document.createElement('img');
+        img.src = `${shape}.png`;
+        img.alt = shape;
+        img.style.visibility = 'hidden';
+        card.appendChild(img);
+        card.addEventListener('click', () => {
+          if (card.classList.contains('matched') || lockBoard) return;
+          // Prevent clicking the same card twice
+          if (card === firstCard) return;
+          // Reveal current card
+          img.style.visibility = 'visible';
+          card.dataset.revealed = 'true';
+          // If there is no previous card selected, store this as the first
+          if (!firstCard) {
+            firstCard = card;
+            return;
+          }
+          // Otherwise compare with the previous card
+          lockBoard = true;
+          const firstImg = firstCard.querySelector('img');
+          if (firstCard.dataset.shape === card.dataset.shape) {
+            // Match: mark both cards as matched and leave visible
+            firstCard.classList.add('matched');
+            card.classList.add('matched');
+            firstImg.style.visibility = 'visible';
+            img.style.visibility = 'visible';
+            matches++;
+            // Clear selection and unlock
+            firstCard = null;
+            lockBoard = false;
+            // Check if all pairs matched
+            if (matches === shapes.length) {
+              if (successMsg) successMsg.style.display = 'block';
+            }
+          } else {
+            // Not a match: hide both cards after a short delay
+            setTimeout(() => {
+              firstImg.style.visibility = 'hidden';
+              img.style.visibility = 'hidden';
+              firstCard = null;
+              lockBoard = false;
+            }, 800);
+          }
+        });
+        board.appendChild(card);
+      });
+    }
+
 // ===================== Colour and Draw helpers =====================
 // Build the gallery of pictures for colouring.  We reuse a subset of
 // existing images (animals and shapes) for now.  Images are lightened
@@ -452,7 +637,14 @@ function buildColorGallery() {
   const gallery = document.getElementById('color-gallery');
   gallery.innerHTML = '';
   const images = [
-    'dog.png', 'cat.png', 'circle.png', 'square.png', 'star.png', 'heart.png'
+    // Use higher‑quality colouring pages.  Remove simple shapes and
+    // low‑detail pictures.  Include the new castle, cat and monster
+    // truck outlines provided by the user, plus the playground
+    // slide for variety.  These files live in the project root.
+    'castle_detail.png',
+    'cat_fun.png',
+    'monster_truck_detail.png',
+    'playground.png'
   ];
   images.forEach(imgName => {
     const wrapper = document.createElement('div');
@@ -673,6 +865,16 @@ function initSortGame() {
     const slot = document.createElement('div');
     slot.classList.add('drop-slot');
     slot.dataset.target = shape;
+    // Show a faint silhouette of the target shape inside the drop slot.  Use
+    // a greyscale background image with reduced opacity so children can
+    // see where to place each piece.  Background images are centered
+    // and scaled down.  When the correct shape is placed the slot
+    // contents will be replaced with the coloured shape image.
+    slot.style.backgroundImage = `url(${shape}.png)`;
+    slot.style.backgroundRepeat = 'no-repeat';
+    slot.style.backgroundPosition = 'center';
+    slot.style.backgroundSize = '60%';
+    slot.style.opacity = '0.4';
     dropArea.appendChild(slot);
     // Allow drop on slot
     slot.addEventListener('dragover', (e) => {
@@ -685,8 +887,11 @@ function initSortGame() {
         // Find the corresponding draggable item
         const item = dragArea.querySelector(`[data-shape="${shapeName}"]`);
         if (item) {
-          // Mark slot as correct and show the image
+          // Mark slot as correct and show the coloured image
           slot.classList.add('correct');
+          // Remove silhouette and opacity
+          slot.style.backgroundImage = 'none';
+          slot.style.opacity = '1';
           const img = document.createElement('img');
           img.src = `${shapeName}.png`;
           img.alt = shapeName;
@@ -724,6 +929,150 @@ function initSortGame() {
   const msg = document.getElementById('game-success-message');
   if (msg) msg.style.display = 'none';
 }
+
+// ===================== Games: Fruit Catching Game =====================
+/**
+ * Initialise the fruit catching game.  Fruits fall from the top of the
+ * screen; children tap them to catch.  Each catch increases the score.
+ * When 10 fruits have been caught the game stops and a success
+ * message is displayed.  A reset button appears to let children
+ * play again.
+ */
+function initFruitGame() {
+  const fruitArea = document.getElementById('fruit-area');
+  const scoreEl = document.getElementById('fruit-scoreboard');
+  const successMsg = document.getElementById('fruit-success-message');
+  const resetBtn = document.getElementById('fruit-reset-btn');
+  if (!fruitArea || !scoreEl || !successMsg || !resetBtn) return;
+  // Clear any existing fruit
+  fruitArea.innerHTML = '';
+  let score = 0;
+  let fruitsCaught = 0;
+  scoreEl.textContent = 'Score: 0';
+  successMsg.style.display = 'none';
+  resetBtn.hidden = true;
+  // Possible colours and emojis for fruits
+  const colours = ['#E74C3C','#E67E22','#F1C40F','#27AE60','#3498DB','#9B59B6','#FF66CC','#8E44AD','#1ABC9C','#F39C12'];
+  const emojis = ['🍎','🍌','🍇','🍊','🍓','🍍'];
+  // Function to spawn a single fruit
+  function spawnFruit() {
+    const fruit = document.createElement('div');
+    fruit.classList.add('fruit');
+    const colour = colours[Math.floor(Math.random()*colours.length)];
+    fruit.style.backgroundColor = colour;
+    fruit.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    fruit.style.left = Math.random() * (fruitArea.clientWidth - 40) + 'px';
+    fruit.style.top = '-40px';
+    fruitArea.appendChild(fruit);
+    const speed = 2 + Math.random() * 3;
+    const interval = setInterval(() => {
+      const top = parseFloat(fruit.style.top);
+      fruit.style.top = (top + speed) + 'px';
+      if (parseFloat(fruit.style.top) > fruitArea.clientHeight) {
+        clearInterval(interval);
+        fruit.remove();
+      }
+    }, 20);
+    fruit.addEventListener('click', () => {
+      clearInterval(interval);
+      fruit.remove();
+      score++;
+      fruitsCaught++;
+      scoreEl.textContent = 'Score: ' + score;
+      if (fruitsCaught >= 10) {
+        successMsg.style.display = 'block';
+        resetBtn.hidden = false;
+        clearInterval(spawnInterval);
+      }
+    });
+  }
+  // Spawn a fruit every second
+  const spawnInterval = setInterval(spawnFruit, 1000);
+  // Spawn an initial fruit immediately
+  spawnFruit();
+  // Expose reset behaviour: clear intervals and restart
+  resetBtn.onclick = () => {
+    clearInterval(spawnInterval);
+    initFruitGame();
+  };
+}
+
+// ===================== Games: Animal Habitat Game =====================
+/**
+ * Initialise the animal habitats matching game.  Children drag each
+ * animal onto the environment where it lives (e.g. a penguin onto
+ * snow).  Matching all animals shows a success message and a reset
+ * button.  Environments are represented by emoji and animals by
+ * emoji to avoid external image dependencies.
+ */
+function initHabitatGame() {
+  const dropArea = document.getElementById('habitat-drop');
+  const dragArea = document.getElementById('habitat-drag');
+  const successMsg = document.getElementById('habitat-success-message');
+  const resetBtn = document.getElementById('habitat-reset-btn');
+  if (!dropArea || !dragArea || !successMsg || !resetBtn) return;
+  dropArea.innerHTML = '';
+  dragArea.innerHTML = '';
+  successMsg.style.display = 'none';
+  resetBtn.hidden = true;
+  // Define habitats and animals.  Each environment has a key and an
+  // icon; animals reference the habitat key they belong to.
+  const habitats = [
+    { key: 'snow', icon: '❄️' },
+    { key: 'savannah', icon: '🌴' },
+    { key: 'forest', icon: '🌲' }
+  ];
+  const animals = [
+    { key: 'snow', icon: '🐧' }, // penguin
+    { key: 'savannah', icon: '🐘' }, // elephant
+    { key: 'forest', icon: '🦌' } // deer
+  ];
+  // Create drop slots for each habitat
+  habitats.forEach(hab => {
+    const slot = document.createElement('div');
+    slot.classList.add('habitat-slot');
+    slot.dataset.target = hab.key;
+    slot.textContent = hab.icon;
+    // Allow dropping
+    slot.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const animalKey = e.dataTransfer.getData('text/plain');
+      if (animalKey === slot.dataset.target) {
+        // Mark slot correct and show animal icon
+        slot.classList.add('correct');
+        slot.textContent = animals.find(a => a.key === animalKey).icon;
+        // Remove the corresponding draggable item
+        const item = dragArea.querySelector(`[data-animal="${animalKey}"]`);
+        if (item) item.remove();
+        // If all animals placed, show success and reset
+        if (dragArea.children.length === 0) {
+          successMsg.style.display = 'block';
+          resetBtn.hidden = false;
+        }
+      }
+    });
+    dropArea.appendChild(slot);
+  });
+  // Create draggable animals
+  animals.forEach(an => {
+    const item = document.createElement('div');
+    item.classList.add('habitat-item');
+    item.dataset.animal = an.key;
+    item.draggable = true;
+    item.textContent = an.icon;
+    item.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', an.key);
+    });
+    dragArea.appendChild(item);
+  });
+  // Reset button behaviour
+  resetBtn.onclick = () => {
+    initHabitatGame();
+  };
+}
 // Initialize the app after the DOM is ready and loading screen fades
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
@@ -746,7 +1095,7 @@ window.addEventListener('DOMContentLoaded', () => {
         enterSection(section);
       });
     });
-    // Settings button
+    // Settings modal logic
     const settingsBtn = document.getElementById('settings-btn');
     const settingsModal = document.getElementById('settings-modal');
     const closeSettingsBtn = document.getElementById('close-settings-btn');
@@ -760,11 +1109,16 @@ window.addEventListener('DOMContentLoaded', () => {
     const musicToggle = document.getElementById('music-toggle');
     musicToggle.addEventListener('change', () => {
       // To implement: play or pause background music
-      // Placeholder implementation does nothing yet
     });
-    // Back button for colour canvas to return to gallery
+    // Home button returns to the main section menu
+    const homeBtnEl = document.getElementById('home-btn');
+    if (homeBtnEl) {
+      homeBtnEl.addEventListener('click', () => {
+        returnToMenu();
+      });
+    }
+    // Colour canvas back button to return to gallery
     document.getElementById('color-back-btn').addEventListener('click', () => {
-      // Clear canvas
       const canvas = document.getElementById('color-canvas');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -776,7 +1130,6 @@ window.addEventListener('DOMContentLoaded', () => {
       const canvas = document.getElementById('color-canvas');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Redraw faint image if one was selected
       if (currentColourImage) {
         showColorCanvas(currentColourImage);
       }
@@ -786,29 +1139,53 @@ window.addEventListener('DOMContentLoaded', () => {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
-
-    // Enable pinch‑to‑zoom on the drawing and colouring canvases.  We
-    // set the transform origin to the top left so that the canvas
-    // scales outward from the corner.  The buttons for zooming were
-    // removed from the HTML; pinch gestures now control zoom.
-    const colorCanvasEl = document.getElementById('color-canvas');
-    const drawCanvasEl = document.getElementById('draw-canvas');
-    if (colorCanvasEl) {
-      colorCanvasEl.style.transformOrigin = 'top left';
-      enablePinchZoom(colorCanvasEl);
+    // Enable pinch‑to‑zoom on the drawing and colouring canvases
+    const cCanvas = document.getElementById('color-canvas');
+    const dCanvas = document.getElementById('draw-canvas');
+    if (cCanvas) {
+      cCanvas.style.transformOrigin = 'top left';
+      enablePinchZoom(cCanvas);
     }
-    if (drawCanvasEl) {
-      drawCanvasEl.style.transformOrigin = 'top left';
-      enablePinchZoom(drawCanvasEl);
+    if (dCanvas) {
+      dCanvas.style.transformOrigin = 'top left';
+      enablePinchZoom(dCanvas);
     }
-    // Reset the sorting game when the restart button is clicked
-    const resetBtn = document.getElementById('game-reset-btn');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
+    // Sorting game restart button
+    const sortResetBtn = document.getElementById('game-reset-btn');
+    if (sortResetBtn) {
+      sortResetBtn.addEventListener('click', () => {
         initSortGame();
       });
     }
-    // Make sure the app starts at the section menu
+    // Memory game restart button
+    const memResetBtn = document.getElementById('memory-reset-btn');
+    if (memResetBtn) {
+      memResetBtn.addEventListener('click', () => {
+        initMemoryGame();
+      });
+    }
+    // Habitat game restart button
+    const habResetBtn = document.getElementById('habitat-reset-btn');
+    if (habResetBtn) {
+      habResetBtn.addEventListener('click', () => {
+        initHabitatGame();
+      });
+    }
+    // Attach handlers to game cards for selecting games
+    document.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const game = card.dataset.game;
+        enterGame(game);
+      });
+    });
+    // Back button in games section
+    const gbBtn = document.getElementById('game-back-btn');
+    if (gbBtn) {
+      gbBtn.addEventListener('click', () => {
+        returnToGamesMenu();
+      });
+    }
+    // Ensure the app starts at the section menu
     returnToMenu();
   }, 1500);
 });
