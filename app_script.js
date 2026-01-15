@@ -188,6 +188,12 @@ function playSound(url, fallbackName) {
       const audio = new Audio(url);
       // Attempt to allow cross‑origin audio sources
       audio.crossOrigin = 'anonymous';
+      // Ensure animal sounds do not loop.  Some audio files (e.g. the
+      // rabbit sound) may be long; by explicitly disabling looping
+      // we prevent them from repeating indefinitely.  When a new
+      // item is shown the currently playing audio will be paused via
+      // pauseAllSounds().
+      audio.loop = false;
       soundCache[url] = audio;
     }
     const audio = soundCache[url];
@@ -199,6 +205,21 @@ function playSound(url, fallbackName) {
   } catch (err) {
     speak(fallbackName);
   }
+}
+
+// Pause all currently playing sounds.  This helper is called before
+// rendering a new item so that long audio (e.g. the rabbit) stops
+// immediately when the user swipes to the next item.  Without
+// explicitly pausing the audio it would continue playing over the
+// next item.
+function pauseAllSounds() {
+  Object.values(soundCache).forEach(audio => {
+    try {
+      audio.pause();
+    } catch (_) {
+      // ignore errors from paused or unloaded audio
+    }
+  });
 }
 
 // Build the navigation buttons for each pack.
@@ -227,7 +248,12 @@ function buildPackCards() {
     if (packName === 'Colors' && items.length > 0) {
       cardColour = items[0].hex;
     }
-    // For Letters and Numbers, no image or colour – we'll leave blank
+    // For Letters and Numbers, supply custom icons so the card isn't blank
+    if (packName === 'Letters') {
+      cardImage = 'letters_icon.png';
+    } else if (packName === 'Numbers') {
+      cardImage = 'numbers_icon.png';
+    }
     // Create card element
     const card = document.createElement('div');
     card.classList.add('pack-card');
@@ -327,6 +353,10 @@ function renderCurrentItem() {
   container.innerHTML = '';
   const packItems = packs[currentPackName];
   const item = packItems[currentIndex];
+  // Pause any audio that might be currently playing.  This prevents
+  // lingering sounds (e.g. the rabbit) from continuing when you swipe
+  // between items.
+  pauseAllSounds();
   // Create wrapper for the item display
   const wrapper = document.createElement('div');
   wrapper.classList.add('item-view');
@@ -366,12 +396,20 @@ function renderCurrentItem() {
     labelDiv.textContent = item.name;
     wrapper.appendChild(labelDiv);
   }
-  // On click: play sound or speak
-  wrapper.addEventListener('click', () => {
+  // On click: play sound or speak.  For colours and seasons we
+  // prepend “This is …” so the voice sounds more natural (e.g.
+  // “This is blue” or “This is Winter”).  For other packs we just
+  // speak the name.  If a sound is defined we play it instead of
+  // speaking.
+  wrapper.addEventListener('pointerdown', () => {
     if (item.sound) {
       playSound(item.sound, item.name);
     } else {
-      speak(item.name);
+      if (currentPackName === 'Colors' || currentPackName === 'Seasons') {
+        speak('This is ' + item.name);
+      } else {
+        speak(item.name);
+      }
     }
   });
   container.appendChild(wrapper);
@@ -781,7 +819,10 @@ function showColorCanvas(imageName) {
 // is clicked the global currentColour is updated and the selected swatch
 // is highlighted.  If an onSelect callback is provided it is called
 // whenever a colour is chosen.
-let currentColour = '#E74C3C';
+// The currently selected drawing colour.  Initialise to black so that
+// the default swatch (the first one) and the drawn colour match.  This
+// value will be updated when a palette swatch is selected.
+let currentColour = '#000000';
 function initPalette(paletteEl, onSelect) {
   if (!paletteEl) return;
   paletteEl.innerHTML = '';
@@ -816,9 +857,14 @@ function initPalette(paletteEl, onSelect) {
       if (onSelect) onSelect(colour);
     });
     paletteEl.appendChild(swatch);
-    // Select the first colour by default
+    // Select the first colour by default.  When the first swatch is
+    // created we also update `currentColour` to match it so that the
+    // default drawing colour aligns with the highlighted swatch.  This
+    // prevents a mismatch between the palette highlight and the initial
+    // drawing colour.
     if (index === 0) {
       swatch.classList.add('selected');
+      currentColour = colour;
     }
   });
 }
@@ -836,15 +882,19 @@ function setupDrawingCanvas(canvas) {
 
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
+    // Determine the current scale for pinch‑to‑zoom.  If no scale is
+    // defined, default to 1.  Divide the pointer coordinates by the
+    // scale so drawing aligns with the transformed canvas.
+    const scale = parseFloat(canvas.dataset.scale) || 1;
     if (e.touches && e.touches.length) {
       return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
+        x: (e.touches[0].clientX - rect.left) / scale,
+        y: (e.touches[0].clientY - rect.top) / scale
       };
     } else {
       return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: (e.clientX - rect.left) / scale,
+        y: (e.clientY - rect.top) / scale
       };
     }
   }
@@ -892,14 +942,29 @@ function setupDrawingCanvas(canvas) {
 // on the canvas element via a data attribute.  The transform origin
 // must be set (in CSS) to top left for scaling to behave predictably.
 function enablePinchZoom(canvas) {
+  // We implement pinch‑to‑zoom by tracking the distance between two
+  // touch points and the midpoint of the pinch.  The scale is
+  // anchored around the initial midpoint by updating the transform
+  // origin on each move.  This prevents the canvas from snapping to
+  // the top‑left corner when zooming and keeps the zoom centred on
+  // where the child is pinching.
   let initialDistance = null;
   let initialScale = 1;
+  let initialMidpoint = null;
   canvas.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches.length === 2) {
       e.preventDefault();
       const [t1, t2] = e.touches;
       initialDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
       initialScale = parseFloat(canvas.dataset.scale) || 1;
+      // Compute the midpoint relative to the canvas so we can anchor
+      // the zoom around this point.  We subtract the canvas
+      // bounding‑rect so that the origin is expressed in canvas
+      // coordinates.
+      const rect = canvas.getBoundingClientRect();
+      const mx = ((t1.clientX + t2.clientX) / 2) - rect.left;
+      const my = ((t1.clientY + t2.clientY) / 2) - rect.top;
+      initialMidpoint = { x: mx, y: my };
     }
   }, { passive: false });
   canvas.addEventListener('touchmove', (e) => {
@@ -908,16 +973,27 @@ function enablePinchZoom(canvas) {
       const [t1, t2] = e.touches;
       const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
       let newScale = initialScale * (dist / initialDistance);
-      // clamp the scale for usability
+      // Clamp the scale for usability
       newScale = Math.max(0.5, Math.min(3, newScale));
       canvas.dataset.scale = newScale;
+      // Compute the current midpoint relative to the canvas.  We will
+      // use the initial midpoint as the transform origin so that the
+      // zoom stays centred on where the child pinched.
+      const rect = canvas.getBoundingClientRect();
+      const mx = ((t1.clientX + t2.clientX) / 2) - rect.left;
+      const my = ((t1.clientY + t2.clientY) / 2) - rect.top;
+      if (initialMidpoint) {
+        // Set the transform origin based on the initial midpoint.
+        canvas.style.transformOrigin = `${initialMidpoint.x}px ${initialMidpoint.y}px`;
+      }
       canvas.style.transform = `scale(${newScale})`;
     }
   }, { passive: false });
   canvas.addEventListener('touchend', (e) => {
-    // Reset initial distance when fingers lifted
+    // Reset initial values when fingers lifted
     if (!e.touches || e.touches.length < 2) {
       initialDistance = null;
+      initialMidpoint = null;
     }
   });
 }
@@ -1053,7 +1129,8 @@ function initFruitGame() {
         fruit.remove();
       }
     }, 20);
-    fruit.addEventListener('click', () => {
+    // Use pointerdown instead of click so tapping registers immediately
+    fruit.addEventListener('pointerdown', () => {
       clearInterval(interval);
       fruit.remove();
       score++;
@@ -1095,25 +1172,34 @@ function initHabitatGame() {
   dragArea.innerHTML = '';
   successMsg.style.display = 'none';
   resetBtn.hidden = true;
-  // Define habitats and animals.  Each environment has a key and an
-  // icon; animals reference the habitat key they belong to.
-  const habitats = [
-    { key: 'snow', icon: '❄️' },
-    { key: 'savannah', icon: '🌴' },
-    { key: 'forest', icon: '🌲' }
+  // Define a pool of possible habitat/animal pairs.  Each entry
+  // includes a habitat key, the animal icon and the matching
+  // environment icon.  When the game is initialised we will
+  // randomly choose a subset of these pairs so the game varies each
+  // time.  Feel free to add more pairs here for increased variety.
+  const pool = [
+    { key: 'snow',    animal: '🐧', hab: '❄️' }, // penguin → snow
+    { key: 'savannah', animal: '🐘', hab: '🌴' }, // elephant → savannah
+    { key: 'forest',  animal: '🦌', hab: '🌲' }, // deer → forest
+    { key: 'ocean',   animal: '🐬', hab: '🌊' }, // dolphin → ocean
+    { key: 'farm',    animal: '🐔', hab: '🌾' }, // chicken → farm
+    { key: 'desert',  animal: '🐫', hab: '🏜' }, // camel → desert
+    { key: 'jungle',  animal: '🦧', hab: '🌿' }, // orangutan → jungle
+    { key: 'mountain',animal: '🐻', hab: '🏔️' }  // bear → mountain
   ];
-  const animals = [
-    { key: 'snow', icon: '🐧' }, // penguin
-    { key: 'savannah', icon: '🐘' }, // elephant
-    { key: 'forest', icon: '🦌' } // deer
-  ];
-  // Create drop slots for each habitat
+  // Shuffle the pool and pick a subset of three pairs.  This keeps the
+  // game manageable while allowing variety on each playthrough.
+  const shuffledPairs = pool.sort(() => Math.random() - 0.5);
+  const selected = shuffledPairs.slice(0, 3);
+  const habitats = selected.map(p => ({ key: p.key, icon: p.hab }));
+  const animals = selected.map(p => ({ key: p.key, icon: p.animal }));
+  // Create drop slots for each selected habitat
   habitats.forEach(hab => {
     const slot = document.createElement('div');
     slot.classList.add('habitat-slot');
     slot.dataset.target = hab.key;
     slot.textContent = hab.icon;
-    // Allow dropping
+    // Allow dropping onto this slot
     slot.addEventListener('dragover', (e) => {
       e.preventDefault();
     });
@@ -1121,22 +1207,27 @@ function initHabitatGame() {
       e.preventDefault();
       const animalKey = e.dataTransfer.getData('text/plain');
       if (animalKey === slot.dataset.target) {
-        // Mark slot correct and show animal icon
+        // Mark slot correct and show the animal icon
         slot.classList.add('correct');
         slot.textContent = animals.find(a => a.key === animalKey).icon;
         // Remove the corresponding draggable item
         const item = dragArea.querySelector(`[data-animal="${animalKey}"]`);
         if (item) item.remove();
-        // If all animals placed, show success and reset
+        // If all animals placed, display success then start a new round
         if (dragArea.children.length === 0) {
           successMsg.style.display = 'block';
-          resetBtn.hidden = false;
+          // Hide the reset button for the automatic next round
+          resetBtn.hidden = true;
+          // After a brief pause, reinitialise the game with a new set
+          setTimeout(() => {
+            initHabitatGame();
+          }, 1200);
         }
       }
     });
     dropArea.appendChild(slot);
   });
-  // Create draggable animals
+  // Create draggable animals for the selected pairs
   animals.forEach(an => {
     const item = document.createElement('div');
     item.classList.add('habitat-item');
@@ -1148,7 +1239,8 @@ function initHabitatGame() {
     });
     dragArea.appendChild(item);
   });
-  // Reset button behaviour
+  // Reset button reinitialises the game immediately, bypassing the
+  // automatic cycling.  Useful if the child wants to try again.
   resetBtn.onclick = () => {
     initHabitatGame();
   };
@@ -1253,10 +1345,37 @@ window.addEventListener('DOMContentLoaded', () => {
     closeSettingsBtn.addEventListener('click', () => {
       settingsModal.hidden = true;
     });
-    // Music toggle placeholder – background music support can be implemented later
+    // Music toggle implementation.  We create a single Audio object
+    // for the background music and loop it quietly.  The music will
+    // only start playing after the user interacts with the page (by
+    // toggling the switch), which satisfies browser autoplay
+    // policies.  The toggle checkbox controls whether the music is
+    // playing.  We store the state in localStorage so the setting
+    // persists across sessions.
     const musicToggle = document.getElementById('music-toggle');
+    let bgMusic;
+    try {
+      bgMusic = new Audio('background_music.wav');
+      bgMusic.loop = true;
+      // Load previous preference
+      const musicPref = localStorage.getItem('backgroundMusic');
+      if (musicPref === 'on') {
+        musicToggle.checked = true;
+      }
+    } catch (_) {
+      // ignore audio errors
+    }
     musicToggle.addEventListener('change', () => {
-      // To implement: play or pause background music
+      if (!bgMusic) return;
+      if (musicToggle.checked) {
+        // Save preference and play
+        try { localStorage.setItem('backgroundMusic','on'); } catch (_) {}
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(() => {});
+      } else {
+        try { localStorage.setItem('backgroundMusic','off'); } catch (_) {}
+        bgMusic.pause();
+      }
     });
     // Home button returns to the main section menu
     const homeBtnEl = document.getElementById('home-btn');
@@ -1291,11 +1410,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const cCanvas = document.getElementById('color-canvas');
     const dCanvas = document.getElementById('draw-canvas');
     if (cCanvas) {
-      cCanvas.style.transformOrigin = 'top left';
+      // Set the transform origin to the centre so pinch‑to‑zoom scales
+      // from the centre of the canvas instead of the top‑left corner.
+      cCanvas.style.transformOrigin = 'center center';
       enablePinchZoom(cCanvas);
     }
     if (dCanvas) {
-      dCanvas.style.transformOrigin = 'top left';
+      dCanvas.style.transformOrigin = 'center center';
       enablePinchZoom(dCanvas);
     }
     // Sorting game restart button
