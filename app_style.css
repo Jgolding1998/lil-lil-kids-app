@@ -11,9 +11,43 @@ h1, h2, h3, p {
 }
 
 header {
-    text-align: center;
+    /* Centre the title but allow absolutely positioned buttons to sit on the left
+       and right without overlapping the text.  Use flex layout so the
+       title stays centered while the home and settings buttons stay at
+       the edges. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
     color: #333;
+    position: relative;
+}
+
+/* Home button: positioned in the header next to the settings button */
+.home-btn {
+    position: absolute;
+    /* Place the home button in the top left of the header so it
+       doesn't overlap the title.  Use left instead of right. */
+    top: 1rem;
+    left: 1rem;
+    font-size: 2rem;
+    border: none;
+    background: none;
+    color: #ff80b5;
+    cursor: pointer;
+    line-height: 1;
+}
+/* Settings button: adjust positioning to align with home button */
+.settings-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    border: none;
+    background: none;
+    color: #ff80b5;
+    cursor: pointer;
+    line-height: 1;
 }
 
 .subtitle {
@@ -399,6 +433,105 @@ footer {
     display: none !important;
 }
 
+/* ===================== Games ===================== */
+/* Game menu displays a set of game cards in a 2×n grid */
+.game-menu {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 1rem;
+    justify-items: center;
+}
+/* Individual game card */
+.game-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 120px;
+    max-width: 180px;
+    max-height: 120px;
+    padding: 0.75rem;
+    border-radius: 20px;
+    background-color: #ffeef7;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+.game-card:active {
+    transform: scale(0.97);
+}
+.game-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffeffa, #f6f0fc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+.game-label {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+}
+
+/* Sorting game styles reuse existing .sort-game, .drop-area, .draggable-area, etc. */
+
+/* Memory game board: displays cards in a 4×3 grid */
+.memory-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+.memory-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    justify-items: center;
+    padding: 1rem;
+}
+.memory-card {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background-color: #ffeef7;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    font-size: 2rem;
+}
+.memory-card img {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+}
+/* Hide matched cards by making them invisible */
+.memory-card.matched {
+    visibility: hidden;
+}
+/* Success message for memory game */
+.memory-success-message {
+    font-size: 1.5rem;
+    color: #27AE60;
+    display: none;
+    text-align: center;
+}
+
+/* Back button within games */
+#game-back-btn {
+    margin-top: 1rem;
+    align-self: flex-start;
+}
+
 /* ===================== Draw and Colour canvases ===================== */
 /* Wrapper around canvas and palette for colouring and drawing */
 .canvas-wrapper {
@@ -619,9 +752,55 @@ footer {
     transform: scale(0.97);
 }
 .draggable-item img {
-    width: 60%;
-    height: 60%;
+    /* Limit the image inside draggable items.  Use percentages so they
+       scale with the parent.  Disable pointer events to avoid the
+       image itself being dragged independently of the parent div. */
+    width: 70%;
+    height: 70%;
     object-fit: contain;
+    pointer-events: none;
+}
+/* Ensure dropped images inside drop slots do not blow up to their
+   natural size.  Constrain the images to 70% of the slot so they
+   resemble the originals. */
+.drop-slot img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/*
+ * Shape‑specific outlines for the sorting game.  Each drop slot
+ * inherits from .drop-slot but these classes override its shape so
+ * children see a distinct outline for each target.  Circles become
+ * round, triangles use a polygon clip path, stars use a star
+ * polygon, rectangles have soft corners, and hearts use a custom
+ * heart path.  If the browser does not support clip-path for
+ * polygons or paths, the silhouette is still visible via the
+ * background image drawn in the script.
+ */
+.drop-slot.circle-slot {
+    border-radius: 50%;
+}
+
+.drop-slot.rectangle-slot {
+    border-radius: 8px;
+}
+
+.drop-slot.triangle-slot {
+    /* Draw an upright triangle. */
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.drop-slot.star-slot {
+    /* Five‑point star polygon. */
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.drop-slot.heart-slot {
+    /* Approximate a heart shape. */
+    clip-path: path('M50 15 C 35 0, 15 15, 15 35 C 15 60, 50 80, 50 80 C 50 80, 85 60, 85 35 C 85 15, 65 0, 50 15 Z');
 }
 /* Success message shown when all shapes are correctly placed */
 #game-success-message {
@@ -653,4 +832,188 @@ footer {
 }
 .zoom-controls button:active {
     transform: scale(0.95);
+}
+
+/* ===================== Fruit Catch Game ===================== */
+/* Container for the fruit catching game */
+.fruit-game {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0.5rem;
+}
+
+/* Area where fruits fall */
+.fruit-area {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #eafafc, #ffeef7);
+    border-radius: 12px;
+    margin: 0.5rem 0;
+}
+
+/* Individual fruit element */
+.fruit {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Scoreboard for fruit game */
+#fruit-scoreboard {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+}
+
+/* Success message for fruit game */
+.fruit-success-message {
+    display: none;
+    font-size: 1.3rem;
+    margin-top: 0.5rem;
+    color: #27AE60;
+    text-align: center;
+}
+
+/* ===================== Habitat Game ===================== */
+/* Container for the habitats game.  Aligns items vertically with spacing. */
+.habitat-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+/* Instructions text for the habitats game */
+.habitat-game .game-instructions {
+    font-size: 1rem;
+    color: #555;
+    text-align: center;
+    max-width: 300px;
+}
+/* Drop area for habitats */
+.habitat-drop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+/* Draggable area for animals */
+.habitat-drag {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+/* Individual habitat slot where animals are dropped */
+.habitat-slot {
+    width: 80px;
+    height: 80px;
+    border: 2px dashed #cccccc;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fdf6fb;
+    font-size: 2rem;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.habitat-slot.correct {
+    background-color: #e5ffe5;
+    border-color: #4caf50;
+}
+/* Draggable animal items */
+.habitat-item {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background-color: #ffeef7;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    font-size: 2rem;
+    transition: transform 0.1s ease;
+}
+.habitat-item:active {
+    transform: scale(0.97);
+}
+/* Success message for habitat game */
+.habitat-success-message {
+    font-size: 1.5rem;
+    color: #27AE60;
+    display: none;
+    text-align: center;
+}
+
+/* ===================== Puzzle Game Styles ===================== */
+/* Container for the puzzle game */
+.puzzle-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+/* Drop area where numbered slots are rendered */
+.puzzle-drop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+/* Drag area holding the shuffled pieces */
+.puzzle-drag {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+/* Each slot in the puzzle drop area */
+.puzzle-slot {
+    width: 60px;
+    height: 60px;
+    border: 2px dashed #cccccc;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background-color: #fdf6fb;
+    color: #aaaaaa;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+.puzzle-slot.correct {
+    background-color: #e5ffe5;
+    border-color: #4caf50;
+    color: #4caf50;
+}
+/* Draggable puzzle pieces */
+.puzzle-piece {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    background-color: #ffeef7;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    font-size: 1.5rem;
+    color: #333;
+    transition: transform 0.1s ease;
+}
+.puzzle-piece:active {
+    transform: scale(0.97);
 }
