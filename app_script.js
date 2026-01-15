@@ -30,15 +30,16 @@ const packs = {
     { name: 'Purple', hex: '#9B59B6', textColor: '#FFFFFF' }
   ],
   Animals: [
-    // Each animal includes an image and a sound effect.  The sound
-    // files come from third‑party sites offering royalty‑free or
-    // public domain audio.  If playback fails, the app will speak the name.
-    { name: 'Dog', image: 'dog.png', sound: 'https://www.freesoundslibrary.com/wp-content/uploads/2020/08/single-dog-woof-sound.mp3' },
-    { name: 'Cat', image: 'cat.png', sound: 'https://www.freesoundslibrary.com/wp-content/uploads/2020/04/cat-meow-sound.mp3' },
-    { name: 'Rabbit', image: 'rabbit.png', sound: 'https://opengameart.org/sites/default/files/RabbitEating.mp3' },
-    { name: 'Lion', image: 'lion.png', sound: 'https://soundbible.com/mp3/Roaring%20Lion-SoundBible.com-527774719.mp3' },
-    { name: 'Cow', image: 'cow.png', sound: 'https://www.freesoundslibrary.com/wp-content/uploads/2017/09/Cow-moo-sound.mp3' },
-    { name: 'Monkey', image: 'monkey.png', sound: 'https://soundbible.com/mp3/Gorilla-SoundBible.com-1576451741.mp3' }
+    // Each animal includes an image and a local sound effect stored in the
+    // `sounds/` directory.  These local files are included in the
+    // repository so that audio plays reliably without depending on
+    // cross‑origin policies.  If playback fails, the app will speak the name.
+    { name: 'Dog',    image: 'dog.png',    sound: 'dog.mp3'    },
+    { name: 'Cat',    image: 'cat.png',    sound: 'cat.mp3'    },
+    { name: 'Rabbit', image: 'rabbit.png', sound: 'rabbit.wav'  },
+    { name: 'Lion',   image: 'lion.png',   sound: 'lion.mp3'   },
+    { name: 'Cow',    image: 'cow.png',    sound: 'cow.mp3'    },
+    { name: 'Monkey', image: 'monkey.png', sound: 'monkey.mp3' }
   ],
   Letters: (() => {
     // Generate A–Z automatically.  Letters do not use images; they will
@@ -94,9 +95,33 @@ const soundCache = {};
 function speak(text) {
   if ('speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance(text);
+    // Try to choose a more pleasant, child‑friendly voice.  Many
+    // browsers provide multiple voices; we look for names containing
+    // "child", "kids", "Samantha", or "Female".  If none are
+    // available we fall back to the first voice returned.  We also
+    // adjust the pitch and rate to be slightly higher and slower,
+    // which sounds friendlier to young ears.
+    const voices = window.speechSynthesis.getVoices();
+    let voice = null;
+    if (voices && voices.length) {
+      voice = voices.find(v => /child|kids|samantha|female/i.test(v.name));
+      if (!voice) {
+        // As a fallback, prefer Google voices which often sound more natural
+        voice = voices.find(v => /google/i.test(v.name));
+      }
+      if (!voice) {
+        // Default to the first available voice
+        voice = voices[0];
+      }
+      utterance.voice = voice;
+    }
     utterance.lang = 'en-US';
+    // Adjust the pitch and rate for a more playful tone
+    utterance.pitch = 1.2;
+    utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
   } else {
+    // If SpeechSynthesis is unavailable, fallback to alert
     alert(text);
   }
 }
@@ -188,9 +213,15 @@ let currentIndex = 0;
 function enterPack(packName) {
   currentPackName = packName;
   currentIndex = 0;
-  // Hide pack selection view
-  document.getElementById('pack-selection').style.display = 'none';
-  // Hide the page header within the app to allow items to fill more of the screen
+  // Hide the pack list within the learn section so the item fills more of the screen
+  const packSelector = document.getElementById('pack-selector');
+  if (packSelector) {
+    packSelector.style.display = 'none';
+  }
+  // Hide the subtitle inside the learn section to maximise space
+  const subtitle = document.querySelector('#learn-section .subtitle');
+  if (subtitle) subtitle.style.display = 'none';
+  // Hide the header within the app to allow items to fill more of the screen
   const header = document.querySelector('header');
   if (header) {
     header.style.display = 'none';
@@ -222,8 +253,14 @@ function exitPack() {
   currentIndex = 0;
   // Hide viewer
   document.getElementById('viewer').hidden = true;
-  // Show pack selection view
-  document.getElementById('pack-selection').style.display = '';
+  // Show pack list again
+  const packSelector = document.getElementById('pack-selector');
+  if (packSelector) {
+    packSelector.style.display = '';
+  }
+  // Show the subtitle inside the learn section
+  const subtitle = document.querySelector('#learn-section .subtitle');
+  if (subtitle) subtitle.style.display = '';
   // Restore header visibility
   const header = document.querySelector('header');
   if (header) {
@@ -326,6 +363,331 @@ function addSwipeDetection() {
   });
 }
 
+// ===================== Section Navigation =====================
+// Enter one of the top‑level sections (learn, colour, draw or games).
+// Hides the section menu and shows the selected section.  Always hides
+// the viewer in case it was open from a previous pack.
+function enterSection(section) {
+  // Show loading screen briefly when switching sections.  This gives
+  // children visual feedback that something is happening.  We hide
+  // the previous section content, display the loader, and then
+  // reveal the selected section after a short delay.
+  const loading = document.getElementById('loading-screen');
+  if (loading) {
+    loading.style.display = 'flex';
+  }
+  // Hide all sections immediately
+  document.getElementById('section-menu').hidden = true;
+  document.getElementById('learn-section').hidden = true;
+  document.getElementById('color-section').hidden = true;
+  document.getElementById('draw-section').hidden = true;
+  document.getElementById('games-section').hidden = true;
+  // Always hide the viewer when switching sections
+  const viewer = document.getElementById('viewer');
+  viewer.hidden = true;
+  // Restore header and footer visibility when entering a new section
+  const header = document.querySelector('header');
+  if (header) header.style.display = '';
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.display = '';
+  // After a short delay, reveal the selected section and hide the loader
+  setTimeout(() => {
+    if (loading) {
+      loading.style.display = 'none';
+    }
+    switch (section) {
+      case 'learn':
+        document.getElementById('learn-section').hidden = false;
+        // Ensure the pack list is visible and subtitle shown
+        const packSelector = document.getElementById('pack-selector');
+        if (packSelector) packSelector.style.display = '';
+        const subtitle = document.querySelector('#learn-section .subtitle');
+        if (subtitle) subtitle.style.display = '';
+        break;
+      case 'color':
+        document.getElementById('color-section').hidden = false;
+        buildColorGallery();
+        // Prepare palette for colouring
+        initPalette(document.getElementById('color-palette'));
+        break;
+      case 'draw':
+        document.getElementById('draw-section').hidden = false;
+        initPalette(document.getElementById('draw-palette'));
+        setupDrawingCanvas(document.getElementById('draw-canvas'));
+        break;
+      case 'games':
+        document.getElementById('games-section').hidden = false;
+        // Initialise the sorting game each time the section is entered
+        initSortGame();
+        break;
+      default:
+        // If unknown section, return to menu
+        document.getElementById('section-menu').hidden = false;
+    }
+  }, 600);
+}
+
+// Return to the top‑level section menu
+function returnToMenu() {
+  // Hide all sections
+  document.getElementById('learn-section').hidden = true;
+  document.getElementById('color-section').hidden = true;
+  document.getElementById('draw-section').hidden = true;
+  document.getElementById('games-section').hidden = true;
+  // Show section menu
+  document.getElementById('section-menu').hidden = false;
+  // Restore header and footer
+  const header = document.querySelector('header');
+  if (header) header.style.display = '';
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.display = '';
+}
+
+// ===================== Colour and Draw helpers =====================
+// Build the gallery of pictures for colouring.  We reuse a subset of
+// existing images (animals and shapes) for now.  Images are lightened
+// on the canvas so children can colour over them.  Feel free to add
+// additional image names to this array.
+function buildColorGallery() {
+  const gallery = document.getElementById('color-gallery');
+  gallery.innerHTML = '';
+  const images = [
+    'dog.png', 'cat.png', 'circle.png', 'square.png', 'star.png', 'heart.png'
+  ];
+  images.forEach(imgName => {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('color-thumb');
+    const img = document.createElement('img');
+    img.src = imgName;
+    img.alt = imgName;
+    img.addEventListener('click', () => {
+      showColorCanvas(imgName);
+    });
+    wrapper.appendChild(img);
+    gallery.appendChild(wrapper);
+  });
+}
+
+// Show the colouring canvas with the selected image.  The image is drawn
+// semi‑transparent so that colours can be applied on top.  The palette
+// should already be initialised before this is called.
+let currentColourImage = null;
+function showColorCanvas(imageName) {
+  currentColourImage = imageName;
+  document.getElementById('color-gallery').hidden = true;
+  document.getElementById('color-canvas-container').hidden = false;
+  const canvas = document.getElementById('color-canvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Fit image into canvas while preserving aspect ratio
+    const aspect = img.width / img.height;
+    let drawW = canvas.width;
+    let drawH = canvas.height;
+    if (aspect > canvas.width / canvas.height) {
+      drawH = canvas.width / aspect;
+      drawW = canvas.width;
+    } else {
+      drawW = canvas.height * aspect;
+      drawH = canvas.height;
+    }
+    const dx = (canvas.width - drawW) / 2;
+    const dy = (canvas.height - drawH) / 2;
+    // Draw faint background image.  Apply a grayscale filter and
+    // lower the alpha so the picture appears as a pale outline for
+    // colouring.  Save and restore the canvas state around the
+    // filtered drawing.
+    ctx.save();
+    ctx.filter = 'grayscale(1)';
+    ctx.globalAlpha = 0.4;
+    ctx.drawImage(img, dx, dy, drawW, drawH);
+    ctx.restore();
+  };
+  img.src = imageName;
+  // Initialise drawing on colour canvas
+  setupDrawingCanvas(canvas);
+}
+
+// Initialises a palette of colours on the given element.  When a swatch
+// is clicked the global currentColour is updated and the selected swatch
+// is highlighted.  If an onSelect callback is provided it is called
+// whenever a colour is chosen.
+let currentColour = '#E74C3C';
+function initPalette(paletteEl, onSelect) {
+  if (!paletteEl) return;
+  paletteEl.innerHTML = '';
+  // Define a broader palette including basic primary/secondary colours,
+  // plus black and white for outlines/eraser.  The colours are
+  // deliberately varied so the palette doesn’t feel repetitive and
+  // covers a wide range of hues.  Children can use white as an
+  // “eraser” since the colouring backgrounds are white.
+  const colours = [
+    '#000000', // black
+    '#FFFFFF', // white / eraser
+    '#E74C3C', // red
+    '#E67E22', // orange
+    '#F1C40F', // yellow
+    '#27AE60', // green
+    '#3498DB', // blue
+    '#9B59B6', // purple
+    '#FF66CC', // pink
+    '#8E44AD', // deep violet
+    '#1ABC9C', // turquoise
+    '#F39C12'  // amber
+  ];
+  colours.forEach((colour, index) => {
+    const swatch = document.createElement('div');
+    swatch.classList.add('swatch');
+    swatch.style.backgroundColor = colour;
+    swatch.addEventListener('click', () => {
+      currentColour = colour;
+      // Highlight the selected swatch
+      paletteEl.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      swatch.classList.add('selected');
+      if (onSelect) onSelect(colour);
+    });
+    paletteEl.appendChild(swatch);
+    // Select the first colour by default
+    if (index === 0) {
+      swatch.classList.add('selected');
+    }
+  });
+}
+
+// Set up drawing on a given canvas.  Draws using the currentColour and
+// responds to both mouse and touch events.  Each call creates a new
+// drawing context; multiple canvases may be initialised separately.
+function setupDrawingCanvas(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 6;
+  let drawing = false;
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches && e.touches.length) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    } else {
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  }
+
+  function startDraw(e) {
+    const pos = getPos(e);
+    drawing = true;
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e) {
+    if (!drawing) return;
+    const pos = getPos(e);
+    ctx.strokeStyle = currentColour;
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  }
+
+  function endDraw() {
+    drawing = false;
+  }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('mouseleave', endDraw);
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startDraw(e);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    draw(e);
+  }, { passive: false });
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    endDraw();
+  }, { passive: false });
+}
+
+// ===================== Games: Sorting Game =====================
+// Initialise the sorting game by populating the drop area and draggable
+// area with shapes.  Children drag the shapes from the draggable area
+// into the matching silhouette slot in the drop area.  When all shapes
+// have been placed correctly a success message appears.
+function initSortGame() {
+  const shapes = ['circle','square','triangle','rectangle','star','heart'];
+  const dropArea = document.getElementById('drop-area');
+  const dragArea = document.getElementById('draggable-area');
+  if (!dropArea || !dragArea) return;
+  // Clear any existing content
+  dropArea.innerHTML = '';
+  dragArea.innerHTML = '';
+  // Create drop slots for each shape
+  shapes.forEach(shape => {
+    const slot = document.createElement('div');
+    slot.classList.add('drop-slot');
+    slot.dataset.target = shape;
+    dropArea.appendChild(slot);
+    // Allow drop on slot
+    slot.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const shapeName = e.dataTransfer.getData('text/plain');
+      if (shapeName === slot.dataset.target) {
+        // Find the corresponding draggable item
+        const item = dragArea.querySelector(`[data-shape="${shapeName}"]`);
+        if (item) {
+          // Mark slot as correct and show the image
+          slot.classList.add('correct');
+          const img = document.createElement('img');
+          img.src = `${shapeName}.png`;
+          img.alt = shapeName;
+          slot.innerHTML = '';
+          slot.appendChild(img);
+          // Remove the draggable item
+          item.remove();
+          // If no more items remain, show success message
+          if (dragArea.children.length === 0) {
+            const msg = document.getElementById('game-success-message');
+            if (msg) msg.style.display = 'block';
+          }
+        }
+      }
+    });
+  });
+  // Shuffle shapes for draggable items
+  const shuffled = shapes.slice().sort(() => Math.random() - 0.5);
+  shuffled.forEach(shape => {
+    const item = document.createElement('div');
+    item.classList.add('draggable-item');
+    item.draggable = true;
+    item.dataset.shape = shape;
+    const img = document.createElement('img');
+    img.src = `${shape}.png`;
+    img.alt = shape;
+    item.appendChild(img);
+    // Drag start event sets data transfer
+    item.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', shape);
+    });
+    dragArea.appendChild(item);
+  });
+  // Hide success message at start
+  const msg = document.getElementById('game-success-message');
+  if (msg) msg.style.display = 'none';
+}
 // Initialize the app after the DOM is ready and loading screen fades
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
@@ -335,11 +697,106 @@ window.addEventListener('DOMContentLoaded', () => {
     app.hidden = false;
     // Build pack selection cards
     buildPackCards();
-    // Attach navigation buttons
+    // Attach navigation buttons for viewer
     document.getElementById('exit-btn').addEventListener('click', exitPack);
     document.getElementById('prev-btn').addEventListener('click', prevItem);
     document.getElementById('next-btn').addEventListener('click', nextItem);
     // Enable swipe detection for mobile devices
     addSwipeDetection();
+    // Attach handlers for section cards
+    document.querySelectorAll('.section-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const section = card.dataset.section;
+        enterSection(section);
+      });
+    });
+    // Settings button
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeSettingsBtn = document.getElementById('close-settings-btn');
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.hidden = false;
+    });
+    closeSettingsBtn.addEventListener('click', () => {
+      settingsModal.hidden = true;
+    });
+    // Music toggle placeholder – background music support can be implemented later
+    const musicToggle = document.getElementById('music-toggle');
+    musicToggle.addEventListener('change', () => {
+      // To implement: play or pause background music
+      // Placeholder implementation does nothing yet
+    });
+    // Back button for colour canvas to return to gallery
+    document.getElementById('color-back-btn').addEventListener('click', () => {
+      // Clear canvas
+      const canvas = document.getElementById('color-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById('color-canvas-container').hidden = true;
+      document.getElementById('color-gallery').hidden = false;
+    });
+    // Clear buttons for colour and draw canvases
+    document.getElementById('color-clear-btn').addEventListener('click', () => {
+      const canvas = document.getElementById('color-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Redraw faint image if one was selected
+      if (currentColourImage) {
+        showColorCanvas(currentColourImage);
+      }
+    });
+    document.getElementById('draw-clear-btn').addEventListener('click', () => {
+      const canvas = document.getElementById('draw-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Zoom controls for colour and draw canvases.  Each section has
+    // its own zoom state.  Buttons adjust a scale factor which is
+    // applied via CSS transform to the canvas.  Transform origin is
+    // set to top left so that zooming expands from the top corner.
+    const colorZoomInBtn = document.getElementById('color-zoom-in');
+    const colorZoomOutBtn = document.getElementById('color-zoom-out');
+    const drawZoomInBtn = document.getElementById('draw-zoom-in');
+    const drawZoomOutBtn = document.getElementById('draw-zoom-out');
+    const colorCanvasEl = document.getElementById('color-canvas');
+    const drawCanvasEl = document.getElementById('draw-canvas');
+    if (colorCanvasEl) {
+      colorCanvasEl.style.transformOrigin = 'top left';
+    }
+    if (drawCanvasEl) {
+      drawCanvasEl.style.transformOrigin = 'top left';
+    }
+    let colorZoom = 1;
+    let drawZoom = 1;
+    if (colorZoomInBtn && colorZoomOutBtn && colorCanvasEl) {
+      colorZoomInBtn.addEventListener('click', () => {
+        colorZoom = Math.min(3, colorZoom + 0.2);
+        colorCanvasEl.style.transform = `scale(${colorZoom})`;
+      });
+      colorZoomOutBtn.addEventListener('click', () => {
+        colorZoom = Math.max(0.5, colorZoom - 0.2);
+        colorCanvasEl.style.transform = `scale(${colorZoom})`;
+      });
+    }
+    if (drawZoomInBtn && drawZoomOutBtn && drawCanvasEl) {
+      drawZoomInBtn.addEventListener('click', () => {
+        drawZoom = Math.min(3, drawZoom + 0.2);
+        drawCanvasEl.style.transform = `scale(${drawZoom})`;
+      });
+      drawZoomOutBtn.addEventListener('click', () => {
+        drawZoom = Math.max(0.5, drawZoom - 0.2);
+        drawCanvasEl.style.transform = `scale(${drawZoom})`;
+      });
+    }
+    // Reset the sorting game when the restart button is clicked
+    const resetBtn = document.getElementById('game-reset-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        initSortGame();
+      });
+    }
+    // Make sure the app starts at the section menu
+    returnToMenu();
   }, 1500);
 });
