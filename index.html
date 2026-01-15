@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lil Lil Kids App – Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Lil Lil Kids App</h1>
+    <p>Tap the app icon below to launch the game in a phone simulator. Use the × button to return to the home screen.</p>
+  </header>
+
+  <!-- Phone simulator container -->
+  <div class="phone-container">
+    <div class="phone-frame">
+      <!-- Home screen with app icon -->
+      <div id="home-screen" class="screen">
+        <!-- Use the locally stored icon at the root of this repository -->
+        <img src="app_icon.png" id="app-icon" alt="Lil Lil Kids App icon" />
+        <p class="icon-label">Lil Lil Kids</p>
+      </div>
+      <!-- Back button (appears when app is open) -->
+      <button id="back-button" aria-label="Close app" title="Close app">×</button>
+      <!-- Embedded app iframe -->
+      <!-- Load the flattened app entry point -->
+      <iframe id="app-frame" src="app_index.html" title="Lil Lil Kids App" loading="lazy"></iframe>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    const homeScreen = document.getElementById('home-screen');
+    const appFrame = document.getElementById('app-frame');
+    const appIcon = document.getElementById('app-icon');
+    const backButton = document.getElementById('back-button');
+
+    // Initially hide the app frame and back button
+    appFrame.style.display = 'none';
+    backButton.style.display = 'none';
+
+    // Launch the app when the icon is tapped
+    appIcon.addEventListener('click', () => {
+      homeScreen.style.display = 'none';
+      appFrame.style.display = 'block';
+      backButton.style.display = 'block';
+    });
+
+    // Return to the home screen when back button is clicked
+    backButton.addEventListener('click', () => {
+      appFrame.style.display = 'none';
+      backButton.style.display = 'none';
+      homeScreen.style.display = 'flex';
+    });
+  </script>
+</body>
+</html>

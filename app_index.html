@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lil Lil Kids App</title>
+    <link rel="stylesheet" href="app_style.css">
+</head>
+<body>
+    <!-- Loading screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="spinner"></div>
+        <h2>Loading…</h2>
+    </div>
+
+    <!-- Main application wrapper -->
+    <div id="app" class="app" hidden>
+        <header>
+            <h1>Lil Lil Kids App</h1>
+            <p class="subtitle">Scroll through the packs and explore!</p>
+        </header>
+        <main>
+            <!-- Pack selection view: horizontally scrollable list of packs -->
+            <div id="pack-selection" class="pack-selection">
+                <nav id="pack-selector" class="pack-selector"></nav>
+            </div>
+            <!-- Viewer for individual items; hidden until a pack is chosen -->
+            <div id="viewer" class="viewer" hidden>
+                <button id="exit-btn" aria-label="Exit pack" class="exit-btn">&times;</button>
+                <div id="viewer-content" class="viewer-content"></div>
+                <button id="prev-btn" aria-label="Previous item" class="nav-btn prev-btn">&#x2039;</button>
+                <button id="next-btn" aria-label="Next item" class="nav-btn next-btn">&#x203A;</button>
+            </div>
+        </main>
+        <footer>
+            <p>Have fun learning with Lil Lil Kids App!</p>
+        </footer>
+    </div>
+
+    <script src="app_script.js"></script>
+</body>
+</html>
