@@ -74,6 +74,10 @@
                         <!-- Zoom controls have been removed.  On touch devices,
                              children can pinch to zoom in or out on the
                              canvas instead of using buttons. -->
+                                    <div class="brush-controls">
+                    <label for="color-brush-range">Brush size:</label>
+                    <input type="range" id="color-brush-range" min="2" max="20" value="6">
+            </div>
                     </div>
                     <button id="color-clear-btn" class="clear-btn">Clear</button>
                 </div>
@@ -85,6 +89,10 @@
                 <div id="draw-canvas-wrapper" class="canvas-wrapper">
                     <canvas id="draw-canvas" class="draw-canvas" width="300" height="400"></canvas>
                     <div id="draw-palette" class="palette"></div>
+                                <div class="brush-controls">
+                <label for="draw-brush-range">Brush size:</label>
+                <input type="range" id="draw-brush-range" min="2" max="20" value="6">
+            </div>
                     <!-- Zoom controls have been removed.  Children can use
                          pinch gestures to zoom in and out on the drawing
                          canvas. -->
@@ -96,8 +104,7 @@
             <div id="games-section" class="games-section" hidden>
                 <p class="subtitle">Choose a game to play!</p>
                 <!-- Game menu: allows children to pick which game to play -->
-                <div id="game-menu" class="game-menu">
-                    <div class="game-card" data-game="sort">
+                <div id="game-menu" class="game-menu">                    <div class="game-card" data-game="sort">
                         <div class="game-icon">🧩</div>
                         <div class="game-label">Sorting</div>
                     </div>
@@ -107,6 +114,7 @@
                     </div>
         <!-- New game: Catch the fruit.  Children tap falling fruits to catch them. -->
         <div class="game-card" data-game="fruit">
+>
             <div class="game-icon">🍓</div>
             <div class="game-label">Catch</div>
         </div>
@@ -190,7 +198,47 @@
             console.error('Service worker registration failed:', err);
           });
         });
-      }
+ 
+          <script>
+      // Initialize brush size controls and game subtitle toggle
+      document.addEventListener('DOMContentLoaded', () => {
+        // Brush control for draw section
+        const drawBrush = document.getElementById('draw-brush-range');
+        const drawCanvas = document.getElementById('draw-canvas');
+        if (drawBrush && drawCanvas) {
+          const dCtx = drawCanvas.getContext('2d');
+          dCtx.lineWidth = parseInt(drawBrush.value);
+          drawBrush.addEventListener('input', (e) => {
+            dCtx.lineWidth = parseInt(e.target.value);
+          });
+        }
+        // Brush control for color section
+        const colorBrush = document.getElementById('color-brush-range');
+        const colorCanvas = document.getElementById('color-canvas');
+        if (colorBrush && colorCanvas) {
+          const cCtx = colorCanvas.getContext('2d');
+          cCtx.lineWidth = parseInt(colorBrush.value);
+          colorBrush.addEventListener('input', (e) => {
+            cCtx.lineWidth = parseInt(e.target.value);
+          });
+        }
+        // Toggle games subtitle visibility when selecting games
+        const gameSubtitle = document.querySelector('#games-section .subtitle');
+        const gameCards = document.querySelectorAll('#game-menu .game-card');
+        gameCards.forEach(card => {
+          card.addEventListener('click', () => {
+            if (gameSubtitle) gameSubtitle.hidden = true;
+          });
+        });
+        const gameBackBtn = document.getElementById('game-back-btn');
+        if (gameBackBtn) {
+          gameBackBtn.addEventListener('click', () => {
+            if (gameSubtitle) gameSubtitle.hidden = false;
+          });
+        }
+      });
+    </script>
+}
     </script>
 </body>
 </html>
