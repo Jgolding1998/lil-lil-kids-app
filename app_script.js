@@ -91,10 +91,62 @@ const packs = {
 // same sound repeatedly and allows concurrent playback if needed.
 const soundCache = {};
 
+// Flag indicating whether the games have been unlocked via a one‑time
+// purchase.  The value is stored in localStorage so it persists
+// across sessions and can be restored offline.  Parents can unlock
+// the games for $3.99 via the app store.  Until unlocked,
+// attempting to start a game will prompt the user to purchase.
+let gamesUnlocked = false;
+
+function loadUnlockState() {
+  try {
+    const val = localStorage.getItem('gamesUnlocked');
+    gamesUnlocked = val === 'true';
+  } catch (_) {
+    gamesUnlocked = false;
+  }
+}
+
+function saveUnlockState() {
+  try {
+    localStorage.setItem('gamesUnlocked', gamesUnlocked ? 'true' : 'false');
+  } catch (_) {
+    // ignore storage errors (e.g. private browsing)
+  }
+}
+
+// Prompt parents to unlock the games.  In a real native app this
+// function would call a Capacitor/Ionic in‑app purchase plugin to
+// perform the transaction.  Here we simply display a confirm dialog
+// and set the unlock flag if the user confirms.  Replace this stub
+// with your own payment integration.
+function promptPurchase() {
+  if (confirm('Unlock all games for $3.99?')) {
+    purchaseGames();
+  }
+}
+
+function purchaseGames() {
+  // TODO: integrate with native in‑app purchase plugins for Apple and
+  // Google Play.  For this demo we simply set the flag and persist
+  // it locally.  You should verify receipts via your backend.
+  gamesUnlocked = true;
+  saveUnlockState();
+  alert('Thank you! Games are now unlocked.');
+}
+
 // Speak a given text using the browser's SpeechSynthesis API.  Fallback
 // for when sound effects are not available or fail to load.
 function speak(text) {
   if ('speechSynthesis' in window) {
+    // If a single uppercase letter is supplied (e.g. "A"), convert
+    // it to lowercase so that the SpeechSynthesis API doesn’t prepend
+    // "capital" to the pronunciation.  This makes the voice simply
+    // say the letter name rather than "capital A".  We only apply
+    // this transformation for single characters A–Z.
+    if (typeof text === 'string' && text.length === 1 && /[A-Z]/.test(text)) {
+      text = text.toLowerCase();
+    }
     const utterance = new SpeechSynthesisUtterance(text);
     // Try to choose a more pleasant, child‑friendly voice.  Many
     // browsers provide multiple voices; we look for names containing
@@ -222,16 +274,11 @@ function enterPack(packName) {
   // Hide the subtitle inside the learn section to maximise space
   const subtitle = document.querySelector('#learn-section .subtitle');
   if (subtitle) subtitle.style.display = 'none';
-  // Hide the header within the app to allow items to fill more of the screen
-  const header = document.querySelector('header');
-  if (header) {
-    header.style.display = 'none';
-  }
-  // Hide the footer for more vertical space
-  const footer = document.querySelector('footer');
-  if (footer) {
-    footer.style.display = 'none';
-  }
+  // We intentionally leave the header and footer visible when a pack is
+  // open.  This ensures the home button and settings button remain
+  // accessible so children can return to the main menu or open
+  // settings at any time.  Previously the header and footer were
+  // hidden here but that made it difficult to navigate back.
   // Show viewer
   const viewer = document.getElementById('viewer');
   viewer.hidden = false;
@@ -392,7 +439,9 @@ function enterSection(section) {
   const footer = document.querySelector('footer');
   if (footer) footer.style.display = '';
   // After a short delay, reveal the selected section and hide the loader
-  setTimeout(() => {
+    // Load the game unlock state from local storage
+    loadUnlockState();
+    setTimeout(() => {
     if (loading) {
       loading.style.display = 'none';
     }
@@ -457,25 +506,31 @@ function returnToMenu() {
       const backBtn = document.getElementById('game-back-btn');
       const fruitGame = document.getElementById('fruit-game');
       const habitatGame = document.getElementById('habitat-game');
+    const puzzleGame = document.getElementById('puzzle-game');
       const fruitReset = document.getElementById('fruit-reset-btn');
       const habitatReset = document.getElementById('habitat-reset-btn');
+    const puzzleReset = document.getElementById('puzzle-reset-btn');
     // Hide reset buttons and success messages when showing the game menu
     const sortReset = document.getElementById('game-reset-btn');
     const memoryReset = document.getElementById('memory-reset-btn');
     const sortSuccess = document.getElementById('game-success-message');
     const memSuccess = document.getElementById('memory-success-message');
+    const puzzleSuccess = document.getElementById('puzzle-success-message');
       if (menu) menu.hidden = false;
       if (sortGame) sortGame.hidden = true;
       if (memoryGame) memoryGame.hidden = true;
       if (fruitGame) fruitGame.hidden = true;
       if (habitatGame) habitatGame.hidden = true;
+    if (puzzleGame) puzzleGame.hidden = true;
       if (backBtn) backBtn.hidden = true;
     if (sortReset) sortReset.hidden = true;
     if (memoryReset) memoryReset.hidden = true;
     if (fruitReset) fruitReset.hidden = true;
     if (habitatReset) habitatReset.hidden = true;
+    if (puzzleReset) puzzleReset.hidden = true;
     if (sortSuccess) sortSuccess.style.display = 'none';
     if (memSuccess) memSuccess.style.display = 'none';
+    if (puzzleSuccess) puzzleSuccess.style.display = 'none';
     }
 
     /**
@@ -496,8 +551,10 @@ function returnToMenu() {
       const memoryReset = document.getElementById('memory-reset-btn');
       const fruitReset = document.getElementById('fruit-reset-btn');
       const habitatReset = document.getElementById('habitat-reset-btn');
+      const puzzleReset = document.getElementById('puzzle-reset-btn');
       const fruitGame = document.getElementById('fruit-game');
       const habitatGame = document.getElementById('habitat-game');
+      const puzzleGame = document.getElementById('puzzle-game');
       if (gameName === 'sort') {
         if (sortGame) sortGame.hidden = false;
         if (memoryGame) memoryGame.hidden = true;
@@ -536,12 +593,27 @@ function returnToMenu() {
         if (sortGame) sortGame.hidden = true;
         if (memoryGame) memoryGame.hidden = true;
         if (fruitGame) fruitGame.hidden = true;
+        if (puzzleGame) puzzleGame.hidden = true;
         // Show habitat reset button and hide others
         if (habitatReset) habitatReset.hidden = false;
         if (sortReset) sortReset.hidden = true;
         if (memoryReset) memoryReset.hidden = true;
         if (fruitReset) fruitReset.hidden = true;
+        if (puzzleReset) puzzleReset.hidden = true;
         initHabitatGame();
+      } else if (gameName === 'puzzle') {
+        if (puzzleGame) puzzleGame.hidden = false;
+        if (sortGame) sortGame.hidden = true;
+        if (memoryGame) memoryGame.hidden = true;
+        if (fruitGame) fruitGame.hidden = true;
+        if (habitatGame) habitatGame.hidden = true;
+        // Show puzzle reset button and hide others
+        if (puzzleReset) puzzleReset.hidden = false;
+        if (sortReset) sortReset.hidden = true;
+        if (memoryReset) memoryReset.hidden = true;
+        if (fruitReset) fruitReset.hidden = true;
+        if (habitatReset) habitatReset.hidden = true;
+        initPuzzleGame();
       }
     }
 
@@ -637,14 +709,17 @@ function buildColorGallery() {
   const gallery = document.getElementById('color-gallery');
   gallery.innerHTML = '';
   const images = [
-    // Use higher‑quality colouring pages.  Remove simple shapes and
-    // low‑detail pictures.  Include the new castle, cat and monster
-    // truck outlines provided by the user, plus the playground
-    // slide for variety.  These files live in the project root.
+    // High‑quality colouring pages supplied by the user.  We removed the
+    // generic playground drawing and instead include three new cartoon
+    // scenes.  These filenames correspond to assets stored in the
+    // project root.  If you wish to add more pages later, simply copy
+    // the image into the project folder and add its name here.
     'castle_detail.png',
     'cat_fun.png',
     'monster_truck_detail.png',
-    'playground.png'
+    'dog_detail.png',
+    // Removed the generic playground page – users provided a better image.  Only include the high‑quality pages below.
+    'dino_unicorn_fun.png'
   ];
   images.forEach(imgName => {
     const wrapper = document.createElement('div');
@@ -864,6 +939,11 @@ function initSortGame() {
   shapes.forEach(shape => {
     const slot = document.createElement('div');
     slot.classList.add('drop-slot');
+    // Add a shape‑specific class so CSS can apply a matching outline.  This
+    // allows us to shape the drop area to better match the target piece
+    // (e.g. a circle slot is round, a star slot is a star shape).  See
+    // styles in app_style.css for details.
+    slot.classList.add(`${shape}-slot`);
     slot.dataset.target = shape;
     // Show a faint silhouette of the target shape inside the drop slot.  Use
     // a greyscale background image with reduced opacity so children can
@@ -1073,6 +1153,74 @@ function initHabitatGame() {
     initHabitatGame();
   };
 }
+
+/**
+ * Initialise a simple puzzle game.  Children drag numbered tiles into
+ * the correct slots to complete a 3×3 puzzle.  When all pieces are in
+ * place a success message appears and a reset button allows them to
+ * play again.  The logic is similar to the sorting game but uses
+ * numbers instead of shapes.
+ */
+function initPuzzleGame() {
+  const dropArea = document.getElementById('puzzle-drop');
+  const dragArea = document.getElementById('puzzle-drag');
+  const successMsg = document.getElementById('puzzle-success-message');
+  const resetBtn = document.getElementById('puzzle-reset-btn');
+  if (!dropArea || !dragArea || !successMsg || !resetBtn) return;
+  // Clear previous state
+  dropArea.innerHTML = '';
+  dragArea.innerHTML = '';
+  successMsg.style.display = 'none';
+  resetBtn.hidden = true;
+  // Create nine drop slots labelled 1–9
+  const numbers = [1,2,3,4,5,6,7,8,9];
+  numbers.forEach(num => {
+    const slot = document.createElement('div');
+    slot.classList.add('puzzle-slot');
+    slot.dataset.target = String(num);
+    slot.textContent = num;
+    // Accept drops
+    slot.addEventListener('dragover', e => {
+      e.preventDefault();
+    });
+    slot.addEventListener('drop', e => {
+      e.preventDefault();
+      const value = e.dataTransfer.getData('text/plain');
+      if (value === slot.dataset.target) {
+        // Find the corresponding draggable piece
+        const item = dragArea.querySelector(`[data-value="${value}"]`);
+        if (item) {
+          slot.classList.add('correct');
+          slot.textContent = value;
+          item.remove();
+          // When all pieces placed, show success and reset
+          if (dragArea.children.length === 0) {
+            successMsg.style.display = 'block';
+            resetBtn.hidden = false;
+          }
+        }
+      }
+    });
+    dropArea.appendChild(slot);
+  });
+  // Shuffle numbers for draggable pieces
+  const shuffled = numbers.slice().sort(() => Math.random() - 0.5);
+  shuffled.forEach(num => {
+    const piece = document.createElement('div');
+    piece.classList.add('puzzle-piece');
+    piece.dataset.value = String(num);
+    piece.draggable = true;
+    piece.textContent = num;
+    piece.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', String(num));
+    });
+    dragArea.appendChild(piece);
+  });
+  // Reset behaviour
+  resetBtn.onclick = () => {
+    initPuzzleGame();
+  };
+}
 // Initialize the app after the DOM is ready and loading screen fades
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
@@ -1171,11 +1319,24 @@ window.addEventListener('DOMContentLoaded', () => {
         initHabitatGame();
       });
     }
+    // Puzzle game restart button
+    const puzzleResetBtn = document.getElementById('puzzle-reset-btn');
+    if (puzzleResetBtn) {
+      puzzleResetBtn.addEventListener('click', () => {
+        initPuzzleGame();
+      });
+    }
     // Attach handlers to game cards for selecting games
     document.querySelectorAll('.game-card').forEach(card => {
       card.addEventListener('click', () => {
         const game = card.dataset.game;
-        enterGame(game);
+        // If the games have not been unlocked via in‑app purchase, prompt
+        // the parent to unlock.  Only allow access when unlocked.
+        if (!gamesUnlocked) {
+          promptPurchase();
+        } else {
+          enterGame(game);
+        }
       });
     });
     // Back button in games section
