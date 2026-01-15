@@ -190,6 +190,16 @@ function enterPack(packName) {
   currentIndex = 0;
   // Hide pack selection view
   document.getElementById('pack-selection').style.display = 'none';
+  // Hide the page header within the app to allow items to fill more of the screen
+  const header = document.querySelector('header');
+  if (header) {
+    header.style.display = 'none';
+  }
+  // Hide the footer for more vertical space
+  const footer = document.querySelector('footer');
+  if (footer) {
+    footer.style.display = 'none';
+  }
   // Show viewer
   const viewer = document.getElementById('viewer');
   viewer.hidden = false;
@@ -214,6 +224,16 @@ function exitPack() {
   document.getElementById('viewer').hidden = true;
   // Show pack selection view
   document.getElementById('pack-selection').style.display = '';
+  // Restore header visibility
+  const header = document.querySelector('header');
+  if (header) {
+    header.style.display = '';
+  }
+  // Restore footer visibility
+  const footer = document.querySelector('footer');
+  if (footer) {
+    footer.style.display = '';
+  }
 }
 
 // Render the current item in the viewer
