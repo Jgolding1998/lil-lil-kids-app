@@ -82,7 +82,15 @@ header {
     margin: 1rem 0;
     overflow-y: auto;
     overflow-x: hidden;
-    max-height: calc(100vh - 300px);
+    /* Increase the height available for the pack list so that
+       children can scroll through all packs vertically.  Subtract a
+       smaller amount from the viewport height to leave room for the
+       header and footer. */
+    /* Allow more vertical space for the pack list so that children can scroll
+       through all available packs without feeling constrained.  Reduce the
+       subtraction from the viewport height so the list fills more of the
+       screen while still leaving space for the header and footer. */
+    max-height: calc(100vh - 160px);
     -webkit-overflow-scrolling: touch;
 }
 
@@ -316,4 +324,333 @@ footer {
     .item {
         height: 90px;
     }
+}
+
+/* ===================== Section menu ===================== */
+/* Container for the four main sections (Learn, Colour, Draw, Games).  The
+   cards stack vertically with generous spacing and centred alignment. */
+.section-menu {
+    /* Display the section cards in a responsive grid so that
+       the four options (Learn, Colour, Draw, Games) appear as
+       equally‑sized tiles.  The grid automatically wraps on small
+       devices. */
+    display: grid;
+    /* Always display the four section tiles in a 2×2 grid.  Using
+       repeat(2,1fr) ensures that two columns are displayed even on
+       narrower screens within the phone frame. */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    justify-items: center;
+    padding: 1rem;
+}
+
+/* Cards for each top‑level section.  These resemble the pack cards but
+   feature an emoji instead of a preview image. */
+.section-card {
+    /* Make each section card a square tile with centred content.
+       The tiles will scale to fill available space in the grid. */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 140px;
+    max-width: 200px;
+    max-height: 140px;
+    padding: 0.75rem;
+    border-radius: 20px;
+    background-color: #ffeef7;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+.section-card:active {
+    transform: scale(0.97);
+}
+
+/* Emoji icon inside each section card */
+.section-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffeffa, #f6f0fc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Label text for each section */
+.section-label {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+}
+
+/* Hide section menu when [hidden] attribute is present */
+.section-menu[hidden] {
+    display: none !important;
+}
+
+/* Hide learn, colour, draw and games sections when hidden attribute is present */
+.learn-section[hidden], .color-section[hidden], .draw-section[hidden], .games-section[hidden] {
+    display: none !important;
+}
+
+/* ===================== Draw and Colour canvases ===================== */
+/* Wrapper around canvas and palette for colouring and drawing */
+.canvas-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Canvas element used for drawing/colouring */
+.draw-canvas {
+    width: 100%;
+    height: 400px;
+    background-color: #ffffff;
+    border: 2px solid #ffd6e5;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    touch-action: none; /* Prevent default touch scrolling while drawing */
+}
+
+/* Colour palette for drawing/colouring.  Colours appear as circles. */
+.palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+.palette .swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+.palette .swatch.selected {
+    outline: 3px solid #ff80b5;
+}
+
+/* ===================== Colour gallery ===================== */
+/* Grid of images to choose from in the colouring section */
+.color-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+.color-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    background-color: #ffeef7;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+.color-thumb:active {
+    transform: scale(0.97);
+}
+.color-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Display images in the colouring gallery in grayscale so
+       children can colour them.  The opacity is reduced slightly
+       to emphasise the outline until they start colouring. */
+    filter: grayscale(1);
+    opacity: 0.7;
+}
+
+/* Hide gallery and canvas container when hidden attribute is set */
+.color-gallery[hidden], .color-canvas-container[hidden] {
+    display: none !important;
+}
+
+/* Buttons for clearing canvas and navigating back from colour canvas */
+.clear-btn, .back-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    background-color: #ff80b5;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.clear-btn:active, .back-btn:active {
+    transform: scale(0.97);
+}
+
+/* ===================== Settings button and modal ===================== */
+.settings-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #ff80b5;
+    cursor: pointer;
+}
+.settings-btn:active {
+    transform: scale(0.9);
+}
+
+/* Settings modal overlay */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+.settings-content {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    width: 80%;
+    max-width: 350px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.settings-content h2 {
+    margin-bottom: 1rem;
+}
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+.close-settings-btn {
+    margin-top: 1rem;
+    background-color: #ff80b5;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Hide modal when hidden attribute is present */
+.settings-modal[hidden] {
+    display: none;
+}
+
+/* ===================== Sorting Game ===================== */
+/* Container for the sorting game.  Aligns elements vertically with spacing. */
+.sort-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+/* Drop area holds the target slots where shapes must be placed. */
+.drop-area {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+/* Individual drop slot.  Uses a dashed border to indicate where to drop. */
+.drop-slot {
+    width: 80px;
+    height: 80px;
+    border: 2px dashed #cccccc;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fdf6fb;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+/* When a shape is correctly placed, highlight the slot. */
+.drop-slot.correct {
+    background-color: #e5ffe5;
+    border-color: #4caf50;
+}
+/* Draggable area holds the shapes the child can drag to the drop slots. */
+.draggable-area {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+/* Draggable item styling.  Similar to colour gallery but uses move cursor. */
+.draggable-item {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background-color: #ffeef7;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    transition: transform 0.1s ease;
+}
+.draggable-item:active {
+    transform: scale(0.97);
+}
+.draggable-item img {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+}
+/* Success message shown when all shapes are correctly placed */
+#game-success-message {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #27ae60;
+    margin-top: 1rem;
+    display: none;
+}
+
+/* ===================== Zoom controls ===================== */
+/* Buttons to zoom in and out of the colouring/drawing canvas.  The
+   controls are placed below the palette and centred. */
+.zoom-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.zoom-controls button {
+    padding: 0.4rem 0.8rem;
+    background-color: #ff80b5;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.zoom-controls button:active {
+    transform: scale(0.95);
 }

@@ -8,7 +8,7 @@
     <!-- Append a version query string to bust caches when the CSS
          changes.  Increment this value whenever you modify app_style.css. -->
     <!-- Bump version to force browsers to reload the latest CSS -->
-    <link rel="stylesheet" href="app_style.css?v=7">
+    <link rel="stylesheet" href="app_style.css?v=8">
 </head>
 <body>
     <!-- Loading screen -->
@@ -68,6 +68,11 @@
                     <div id="color-canvas-wrapper" class="canvas-wrapper">
                         <canvas id="color-canvas" class="draw-canvas" width="300" height="400"></canvas>
                         <div id="color-palette" class="palette"></div>
+                        <!-- Zoom controls for colouring canvas -->
+                        <div class="zoom-controls" id="color-zoom-controls">
+                            <button id="color-zoom-in">Zoom In</button>
+                            <button id="color-zoom-out">Zoom Out</button>
+                        </div>
                     </div>
                     <button id="color-clear-btn" class="clear-btn">Clear</button>
                 </div>
@@ -79,6 +84,11 @@
                 <div id="draw-canvas-wrapper" class="canvas-wrapper">
                     <canvas id="draw-canvas" class="draw-canvas" width="300" height="400"></canvas>
                     <div id="draw-palette" class="palette"></div>
+                    <!-- Zoom controls for drawing canvas -->
+                    <div class="zoom-controls" id="draw-zoom-controls">
+                        <button id="draw-zoom-in">Zoom In</button>
+                        <button id="draw-zoom-out">Zoom Out</button>
+                    </div>
                 </div>
                 <button id="draw-clear-btn" class="clear-btn">Clear</button>
             </div>
@@ -115,6 +125,6 @@
     <!-- Append a version query string to bust caches when the JS changes.  Increment
          this value whenever you modify app_script.js. -->
     <!-- Bump version to force browsers to reload the latest JS -->
-    <script src="app_script.js?v=8"></script>
+    <script src="app_script.js?v=9"></script>
 </body>
 </html>
