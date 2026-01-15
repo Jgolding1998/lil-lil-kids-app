@@ -5,7 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lil Lil Kids App</title>
-    <link rel="stylesheet" href="app_style.css">
+    <!-- Append a version query string to bust caches when the CSS
+         changes.  Increment this value whenever you modify app_style.css. -->
+    <!-- Bump version to force browsers to reload the latest CSS -->
+    <link rel="stylesheet" href="app_style.css?v=7">
 </head>
 <body>
     <!-- Loading screen -->
@@ -20,19 +23,76 @@
     <div id="app" class="app" hidden>
         <header>
             <h1>Lil Lil Kids App</h1>
-            <p class="subtitle">Scroll through the packs and explore!</p>
+            <!-- Settings button opens a modal with app options -->
+            <button id="settings-btn" class="settings-btn" aria-label="Settings">&#9881;</button>
         </header>
         <main>
-            <!-- Pack selection view: horizontally scrollable list of packs -->
-            <div id="pack-selection" class="pack-selection">
-                <nav id="pack-selector" class="pack-selector"></nav>
+            <!-- Section menu: choose between Learn, Colour, Draw and Games -->
+            <div id="section-menu" class="section-menu">
+                <div class="section-card" data-section="learn">
+                    <div class="section-icon">📚</div>
+                    <div class="section-label">Learn</div>
+                </div>
+                <div class="section-card" data-section="color">
+                    <div class="section-icon">🎨</div>
+                    <div class="section-label">Colour</div>
+                </div>
+                <div class="section-card" data-section="draw">
+                    <div class="section-icon">✏️</div>
+                    <div class="section-label">Draw</div>
+                </div>
+                <div class="section-card" data-section="games">
+                    <div class="section-icon">🎮</div>
+                    <div class="section-label">Games</div>
+                </div>
             </div>
-            <!-- Viewer for individual items; hidden until a pack is chosen -->
-            <div id="viewer" class="viewer" hidden>
-                <button id="exit-btn" aria-label="Exit pack" class="exit-btn">&times;</button>
-                <div id="viewer-content" class="viewer-content"></div>
-                <button id="prev-btn" aria-label="Previous item" class="nav-btn prev-btn">&#x2039;</button>
-                <button id="next-btn" aria-label="Next item" class="nav-btn next-btn">&#x203A;</button>
+
+            <!-- Learn section: pack selection and viewer -->
+            <div id="learn-section" class="learn-section" hidden>
+                <p class="subtitle">Scroll through the packs and explore!</p>
+                <nav id="pack-selector" class="pack-selector"></nav>
+                <div id="viewer" class="viewer" hidden>
+                    <button id="exit-btn" aria-label="Exit pack" class="exit-btn">&times;</button>
+                    <div id="viewer-content" class="viewer-content"></div>
+                    <button id="prev-btn" aria-label="Previous item" class="nav-btn prev-btn">&#x2039;</button>
+                    <button id="next-btn" aria-label="Next item" class="nav-btn next-btn">&#x203A;</button>
+                </div>
+            </div>
+
+            <!-- Colour section: choose an image to colour and paint on it -->
+            <div id="color-section" class="color-section" hidden>
+                <p class="subtitle">Choose a picture to colour</p>
+                <div id="color-gallery" class="color-gallery"></div>
+                <div id="color-canvas-container" class="color-canvas-container" hidden>
+                    <button id="color-back-btn" class="back-btn" aria-label="Back to gallery">&#x2190; Back</button>
+                    <div id="color-canvas-wrapper" class="canvas-wrapper">
+                        <canvas id="color-canvas" class="draw-canvas" width="300" height="400"></canvas>
+                        <div id="color-palette" class="palette"></div>
+                    </div>
+                    <button id="color-clear-btn" class="clear-btn">Clear</button>
+                </div>
+            </div>
+
+            <!-- Draw section: blank canvas with colours -->
+            <div id="draw-section" class="draw-section" hidden>
+                <p class="subtitle">Let your creativity fly!</p>
+                <div id="draw-canvas-wrapper" class="canvas-wrapper">
+                    <canvas id="draw-canvas" class="draw-canvas" width="300" height="400"></canvas>
+                    <div id="draw-palette" class="palette"></div>
+                </div>
+                <button id="draw-clear-btn" class="clear-btn">Clear</button>
+            </div>
+
+            <!-- Games section: a simple sorting game -->
+            <div id="games-section" class="games-section" hidden>
+                <p class="subtitle">Sort the shapes into the matching boxes!</p>
+                <div class="sort-game">
+                    <div id="drop-area" class="drop-area"></div>
+                    <div id="draggable-area" class="draggable-area"></div>
+                    <div id="game-success-message">Great job!</div>
+                </div>
+                <!-- Restart button allows children to play again -->
+                <button id="game-reset-btn" class="clear-btn">Restart</button>
             </div>
         </main>
         <footer>
@@ -40,6 +100,21 @@
         </footer>
     </div>
 
-    <script src="app_script.js"></script>
+    <!-- Settings modal overlay -->
+    <div id="settings-modal" class="settings-modal" hidden>
+        <div class="settings-content">
+            <h2>Settings</h2>
+            <label class="setting-item">
+                <input type="checkbox" id="music-toggle">
+                <span>Background music</span>
+            </label>
+            <button id="close-settings-btn" class="close-settings-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Append a version query string to bust caches when the JS changes.  Increment
+         this value whenever you modify app_script.js. -->
+    <!-- Bump version to force browsers to reload the latest JS -->
+    <script src="app_script.js?v=8"></script>
 </body>
 </html>
