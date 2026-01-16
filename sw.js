@@ -5,7 +5,7 @@
 // cache on subsequent requests.  Additional resources are added to the
 // cache on demand via the fetch handler.
 
-const CACHE_NAME = 'lil-lil-kids-cache-v2';
+const CACHE_NAME = 'lil-lil-kids-cache-v3'
 
 // List of core files to pre‑cache.  These files are essential for
 // loading the app shell.  We include HTML, CSS, JS and icon.  The
