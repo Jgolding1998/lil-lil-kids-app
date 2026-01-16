@@ -181,5 +181,56 @@
             });
         }
     </script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Brush size control for color section
+        var colorCanvas = document.getElementById('color-canvas');
+        var colorBrush = document.getElementById('color-brush-range');
+        if (colorCanvas && colorBrush) {
+          var colorCtx = colorCanvas.getContext('2d');
+          colorCtx.lineWidth = parseInt(colorBrush.value);
+          colorBrush.addEventListener('input', function(e) {
+            var size = parseInt(e.target.value);
+            colorCtx.lineWidth = size;
+            colorCanvas.dataset.linewidth = size;
+          });
+        }
+        // Brush size control for draw section
+        var drawCanvas = document.getElementById('draw-canvas');
+        var drawBrush = document.getElementById('draw-brush-range');
+        if (drawCanvas && drawBrush) {
+          var drawCtx = drawCanvas.getContext('2d');
+          drawCtx.lineWidth = parseInt(drawBrush.value);
+          drawBrush.addEventListener('input', function(e) {
+            var size = parseInt(e.target.value);
+            drawCtx.lineWidth = size;
+            drawCanvas.dataset.linewidth = size;
+          });
+        }
+        // Game card clicks
+        var gameCards = document.querySelectorAll('#games-section .game-card');
+        var gamesSubtitle = document.querySelector('#games-section .subtitle');
+        var backBtn = document.getElementById('game-back-btn');
+        gameCards.forEach(function(card) {
+          card.addEventListener('click', function() {
+            var gameName = card.dataset.game;
+            if (gamesSubtitle) gamesSubtitle.hidden = true;
+            if (typeof enterGame === 'function') {
+              enterGame(gameName);
+            }
+          });
+        });
+        if (backBtn) {
+          backBtn.addEventListener('click', function() {
+            if (gamesSubtitle) gamesSubtitle.hidden = false;
+            if (typeof showGameMenu === 'function') {
+              showGameMenu();
+            }
+          });
+        }
+      });
+    </script>
 </body>
-</html>
+</
+    html>
