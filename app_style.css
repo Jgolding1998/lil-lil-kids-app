@@ -590,6 +590,11 @@ footer {
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
+    /* Prevent the canvas from resizing its container when zooming.  By
+       hiding overflow on the wrapper the scaled canvas remains clipped
+       to its original bounds so the palette and brush controls stay
+       aligned. */
+    overflow: hidden;
 }
 
 /* Canvas element used for drawing/colouring */

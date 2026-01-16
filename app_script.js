@@ -1521,8 +1521,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const musicToggle = document.getElementById('music-toggle');
     let bgMusic;
     try {
- bgMusic = new Audio('background.mp3');
-bgMusic.loop = true;
+      // Use the MP3 file for background music instead of the old WAV file.
+    // Load the new background music file uploaded by the user
+    // Use the MP3 file 'background.mp3' instead of the old WAV or MP3 names
+    bgMusic = new Audio('background.mp3');
+      bgMusic.loop = true;
+      // Load previous preference
       const musicPref = localStorage.getItem('backgroundMusic');
       if (musicPref === 'on') {
         musicToggle.checked = true;
@@ -1575,13 +1579,19 @@ bgMusic.loop = true;
     const cCanvas = document.getElementById('color-canvas');
     const dCanvas = document.getElementById('draw-canvas');
     if (cCanvas) {
-      // Set the transform origin to the centre so pinch‑to‑zoom scales
-      // from the centre of the canvas instead of the top‑left corner.
-      cCanvas.style.transformOrigin = 'center center';
+      // Set the transform origin to the top‑left corner.  When the
+      // transform origin is centred (50% 50%) the entire canvas element
+      // scales from its centre which also increases the size of the
+      // surrounding container.  By anchoring the origin at (0,0) the
+      // canvas scales within its existing box and only the drawing
+      // content zooms, leaving the UI layout unchanged.  The
+      // enablePinchZoom() function will dynamically update the
+      // transformOrigin based on the pinch midpoint during zooming.
+      cCanvas.style.transformOrigin = '0 0';
       enablePinchZoom(cCanvas);
     }
     if (dCanvas) {
-      dCanvas.style.transformOrigin = 'center center';
+      dCanvas.style.transformOrigin = '0 0';
       enablePinchZoom(dCanvas);
     }
     // Sorting game restart button
