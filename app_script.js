@@ -1521,7 +1521,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const musicToggle = document.getElementById('music-toggle');
     let bgMusic;
     try {
-      bgMusic = new Audio('background_music.wmp3);
+      bgMusic = new Audio('background_music.wmp3;mp3');
       bgMusic.loop = true;
       // Load previous preference
       const musicPref = localStorage.getItem('backgroundMusic');
