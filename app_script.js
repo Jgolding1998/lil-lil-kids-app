@@ -545,6 +545,9 @@ function returnToMenu() {
       const fruitGame = document.getElementById('fruit-game');
       const habitatGame = document.getElementById('habitat-game');
     const puzzleGame = document.getElementById('puzzle-game');
+        const gamesSubtitle = document.querySelector('#games-section .subtitle');
+  if (gamesSubtitle) gamesSubtitle.hidden = false;
+      
       const fruitReset = document.getElementById('fruit-reset-btn');
       const habitatReset = document.getElementById('habitat-reset-btn');
     const puzzleReset = document.getElementById('puzzle-reset-btn');
@@ -583,6 +586,11 @@ function returnToMenu() {
       const sortGame = document.getElementById('sort-game');
       const memoryGame = document.getElementById('memory-game');
       const backBtn = document.getElementById('game-back-btn');
+        const gamesSubtitle = document.querySelector('#games-section .subtitle');
+  if (gamesSubtitle) gamesSubtitle.hidden = true;
+
+        const backBtn = document.getElementById('game-back-btn');
+      
       if (menu) menu.hidden = true;
       if (backBtn) backBtn.hidden = false;
       const sortReset = document.getElementById('game-reset-btn');
@@ -877,7 +885,7 @@ function setupDrawingCanvas(canvas) {
   const ctx = canvas.getContext('2d');
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.lineWidth = 6;
+  ctx.lineWidth = parseInt(canvas.dataset.linewidth || 6);
   let drawing = false;
 
   function getPos(e) {
@@ -918,6 +926,7 @@ function setupDrawingCanvas(canvas) {
     drawing = false;
   }
 
+    ctx.lineWidth = parseInt(canvas.dataset.linewidth || 6);
   canvas.addEventListener('mousedown', startDraw);
   canvas.addEventListener('mousemove', draw);
   canvas.addEventListener('mouseup', endDraw);
