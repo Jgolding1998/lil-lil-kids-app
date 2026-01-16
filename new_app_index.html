@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lil Lil Kids App</title>
+    <!-- Append a version query string to bust caches when the CSS
+         changes.  Increment this value whenever you modify app_style.css. -->
+    <link rel="stylesheet" href="app_style.css?v=14">
+</head>
+<body>
+    <!-- Loading screen -->
+    <div id="loading-screen" class="loading-screen">
+        <img src="app_icon.png" alt="Loading Icon" class="loading-icon">
+        <h2>Loading…</h2>
+    </div>
+
+    <!-- Main application wrapper -->
+    <div id="app" class="app" hidden>
+        <header>
+            <h1>Lil Lil Kids App</h1>
+            <!-- Home button returns to the section menu -->
+            <button id="home-btn" class="home-btn" aria-label="Home">&#8962;</button>
+            <!-- Settings button opens a modal with app options -->
+            <button id="settings-btn" class="settings-btn" aria-label="Settings">&#9881;</button>
+        </header>
+        <main>
+            <!-- Section menu: choose between Learn, Color, Draw and Games -->
+            <div id="section-menu" class="section-menu">
+                <div class="section-card" data-section="learn">
+                    <div class="section-icon">📘</div>
+                    <div class="section-label">Learn</div>
+                </div>
+                <div class="section-card" data-section="color">
+                    <div class="section-icon">🎨</div>
+                    <div class="section-label">Color</div>
+                </div>
+                <div class="section-card" data-section="draw">
+                    <div class="section-icon">✏️</div>
+                    <div class="section-label">Draw</div>
+                </div>
+                <div class="section-card" data-section="games">
+                    <div class="section-icon">🎮</div>
+                    <div class="section-label">Games</div>
+                </div>
+            </div>
+
+            <!-- Learn section: pack selection and viewer -->
+            <div id="learn-section" class="learn-section" hidden>
+                <p class="subtitle">Scroll through the packs and explore!</p>
+                <nav id="pack-selector" class="pack-selector"></nav>
+                <div id="viewer" class="viewer" hidden>
+                    <button id="exit-btn" aria-label="Exit pack" class="exit-btn">&times;</button>
+                    <div id="viewer-content" class="viewer-content"></div>
+                    <button id="prev-btn" aria-label="Previous item" class="nav-btn prev-btn">&#x2039;</button>
+                    <button id="next-btn" aria-label="Next item" class="nav-btn next-btn">&#x203A;</button>
+                </div>
+            </div>
+
+            <!-- Color section: choose an image to color and paint on it -->
+            <div id="color-section" class="color-section" hidden>
+                <p class="subtitle">Choose a picture to color</p>
+                <div id="color-gallery" class="color-gallery"></div>
+                <div id="color-canvas-container" class="color-canvas-container" hidden>
+                    <button id="color-back-btn" class="back-btn" aria-label="Back to gallery">&#x2190; Back</button>
+                    <div id="color-canvas-wrapper" class="canvas-wrapper">
+                        <canvas id="color-canvas" class="draw-canvas" width="300" height="400"></canvas>
+                        <div id="color-palette" class="palette"></div>
+                        <!-- Brush size control -->
+                        <div class="brush-controls">
+                            <label for="color-brush-range">Brush size:</label>
+                            <input type="range" id="color-brush-range" min="2" max="20" value="6"
+                                   oninput="document.getElementById('color-canvas').dataset.linewidth=this.value; document.getElementById('color-canvas').getContext('2d').lineWidth=this.value;">
+                        </div>
+                    </div>
+                    <button id="color-clear-btn" class="clear-btn">Clear</button>
+                </div>
+            </div>
+
+            <!-- Draw section: blank canvas with colours -->
+            <div id="draw-section" class="draw-section" hidden>
+                <p class="subtitle">Let your creativity fly!</p>
+                <div id="draw-canvas-wrapper" class="canvas-wrapper">
+                    <canvas id="draw-canvas" class="draw-canvas" width="300" height="400"></canvas>
+                    <div id="draw-palette" class="palette"></div>
+                    <!-- Brush size control -->
+                    <div class="brush-controls">
+                        <label for="draw-brush-range">Brush size:</label>
+                        <input type="range" id="draw-brush-range" min="2" max="20" value="6"
+                               oninput="document.getElementById('draw-canvas').dataset.linewidth=this.value; document.getElementById('draw-canvas').getContext('2d').lineWidth=this.value;">
+                    </div>
+                </div>
+                <button id="draw-clear-btn" class="clear-btn">Clear</button>
+            </div>
+
+            <!-- Games section: menu and multiple mini‑games -->
+            <div id="games-section" class="games-section" hidden>
+                <p class="subtitle">Choose a game to play!</p>
+                <!-- Game menu: allows children to pick which game to play -->
+                <div id="game-menu" class="game-menu">
+                    <div class="game-card" data-game="sort">
+                        <div class="game-icon">🔤</div>
+                        <div class="game-label">Sorting</div>
+                    </div>
+                    <div class="game-card" data-game="memory">
+                        <div class="game-icon">🧠</div>
+                        <div class="game-label">Memory</div>
+                    </div>
+                    <div class="game-card" data-game="fruit">
+                        <div class="game-icon">🍎</div>
+                        <div class="game-label">Catch</div>
+                    </div>
+                    <div class="game-card" data-game="habitat">
+                        <div class="game-icon">🌍</div>
+                        <div class="game-label">Habitats</div>
+                    </div>
+                </div>
+
+                <!-- Sorting game area -->
+                <div id="sort-game" class="sort-game" hidden>
+                    <div id="drop-area" class="drop-area"></div>
+                    <div id="draggable-area" class="draggable-area"></div>
+                    <div id="game-success-message">Great job!</div>
+                    <!-- Restart button allows children to play again -->
+                    <button id="game-reset-btn" class="clear-btn" hidden>Restart</button>
+                </div>
+                <!-- Memory game area -->
+                <div id="memory-game" class="memory-game" hidden>
+                    <div id="memory-board" class="memory-board"></div>
+                    <div id="memory-success-message" class="memory-success-message">You matched them all!</div>
+                    <!-- Restart button for memory game -->
+                    <button id="memory-reset-btn" class="clear-btn" hidden>Play Again</button>
+                </div>
+                <!-- Fruit catching game area -->
+                <div id="fruit-game" class="fruit-game" hidden>
+                    <div id="fruit-scoreboard">Score: 0</div>
+                    <div id="fruit-area" class="fruit-area"></div>
+                    <div id="fruit-success-message" class="fruit-success-message">Great job!</div>
+                    <button id="fruit-reset-btn" class="clear-btn" hidden>Play Again</button>
+                </div>
+                <!-- Animal habitats game area -->
+                <div id="habitat-game" class="habitat-game" hidden>
+                    <div id="habitat-instructions" class="game-instructions">Drag each animal to where it lives!</div>
+                    <div id="habitat-drop" class="habitat-drop"></div>
+                    <div id="habitat-drag" class="habitat-drag"></div>
+                    <div id="habitat-success-message" class="habitat-success-message">Well done!</div>
+                    <button id="habitat-reset-btn" class="clear-btn" hidden>Play Again</button>
+                </div>
+
+                <!-- Back button to return to game menu -->
+                <button id="game-back-btn" class="back-btn" hidden>&#x2190; Back to Games</button>
+            </div>
+        </main>
+        <footer>
+            <p>Have fun learning with Lil Lil Kids App!</p>
+        </footer>
+    </div>
+
+    <!-- Settings modal overlay -->
+    <div id="settings-modal" class="settings-modal" hidden>
+        <div class="settings-content">
+            <h2>Settings</h2>
+            <label class="setting-item">
+                <input type="checkbox" id="music-toggle">
+                <span>Background music</span>
+            </label>
+            <button id="close-settings-btn" class="close-settings-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Load the main JavaScript file (increment version when modified) -->
+    <script src="app_script.js?v=18"></script>
+    <!-- Register the service worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js').catch(function(err) {
+                    console.error('Service worker registration failed:', err);
+                });
+            });
+        }
+    </script>
+    <!-- Custom script for brush controls and game subtitle toggle -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide all game areas initially to prevent them from showing under the menu
+            ['sort-game','memory-game','fruit-game','habitat-game'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.hidden = true;
+                }
+            });
+            // Brush size control for the color section
+            var colorCanvas = document.getElementById('color-canvas');
+            var colorBrush = document.getElementById('color-brush-range');
+            if (colorCanvas && colorBrush) {
+                var colorCtx = colorCanvas.getContext('2d');
+                colorCtx.lineWidth = parseInt(colorBrush.value);
+                colorBrush.addEventListener('input', function(e) {
+                    var size = parseInt(e.target.value);
+                    colorCtx.lineWidth = size;
+                    colorCanvas.dataset.linewidth = size;
+                });
+            }
+            // Brush size control for the draw section
+            var drawCanvas = document.getElementById('draw-canvas');
+            var drawBrush = document.getElementById('draw-brush-range');
+            if (drawCanvas && drawBrush) {
+                var drawCtx = drawCanvas.getContext('2d');
+                drawCtx.lineWidth = parseInt(drawBrush.value);
+                drawBrush.addEventListener('input', function(e) {
+                    var size = parseInt(e.target.value);
+                    drawCtx.lineWidth = size;
+                    drawCanvas.dataset.linewidth = size;
+                });
+            }
+            // Toggle games subtitle and navigate into games
+            var gameCards = document.querySelectorAll('#games-section .game-card');
+            var gamesSubtitle = document.querySelector('#games-section .subtitle');
+            var backBtn = document.getElementById('game-back-btn');
+            gameCards.forEach(function(card) {
+                card.addEventListener('click', function() {
+                    var gameName = card.dataset.game;
+                    if (gamesSubtitle) gamesSubtitle.hidden = true;
+                    if (typeof enterGame === 'function') {
+                        enterGame(gameName);
+                    }
+                });
+            });
+            if (backBtn) {
+                backBtn.addEventListener('click', function() {
+                    if (gamesSubtitle) gamesSubtitle.hidden = false;
+                    if (typeof showGameMenu === 'function') {
+                        showGameMenu();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
