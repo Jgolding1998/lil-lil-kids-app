@@ -26,8 +26,9 @@ header {
 /* Home button: positioned in the header next to the settings button */
 .home-btn {
     position: absolute;
-    /* Place the home button in the top left of the header so it
-       doesn't overlap the title.  Use left instead of right. */
+    /* Position the home button near the top left of the header.  A 1rem
+       offset keeps it aligned with the header padding and out of the
+       phone frame’s border area. */
     top: 1rem;
     left: 1rem;
     font-size: 2rem;
@@ -36,10 +37,15 @@ header {
     color: #ff80b5;
     cursor: pointer;
     line-height: 1;
+    /* Layer the button above the title text.  Assigning a z-index
+       ensures the icon appears on top of the header's centred title. */
+    z-index: 1;
 }
 /* Settings button: adjust positioning to align with home button */
 .settings-btn {
     position: absolute;
+    /* Align the settings button to the top right of the header.  Using
+       a 1rem offset mirrors the home button’s spacing on the left. */
     top: 1rem;
     right: 1rem;
     font-size: 2rem;
@@ -48,6 +54,8 @@ header {
     color: #ff80b5;
     cursor: pointer;
     line-height: 1;
+    /* Layer the button above the title text. */
+    z-index: 1;
 }
 
 .subtitle {
@@ -433,6 +441,16 @@ footer {
     display: none !important;
 }
 
+/* Ensure that any game area flagged as hidden along with all its
+   descendants remain hidden.  Without this rule, elements like
+   reset buttons or scoreboards can bleed into the game menu when
+   their parent container still has hidden set due to browser
+   implementation quirks. */
+#games-section div[hidden],
+#games-section div[hidden] * {
+    display: none !important;
+}
+
 /* ===================== Games ===================== */
 /* Game menu displays a set of game cards in a 2×n grid */
 .game-menu {
@@ -530,6 +548,36 @@ footer {
 #game-back-btn {
     margin-top: 1rem;
     align-self: flex-start;
+}
+
+/* Hide the back‑to‑games button when the hidden attribute is set.  Without
+   this rule, the button may still occupy space or appear faintly when
+   returning to the game menu because some browsers ignore the HTML
+   `hidden` attribute on buttons.  This ensures the button is completely
+   removed from the layout until a game is active. */
+#game-back-btn[hidden] {
+    display: none !important;
+}
+
+/* Add extra top margin to each mini game container so that games are
+   positioned more centrally within the phone frame.  Without this
+   spacing, game content tends to sit flush against the top of the
+   viewport.  A consistent 2rem margin helps centre the games vertically
+   between the header and footer while still leaving room for controls. */
+/* Increase the top margin for mini game containers to better centre
+   the game content within the phone.  A 3rem offset pushes the
+   interactive elements away from the header so they appear more
+   balanced vertically. */
+/* Centre each mini game vertically within the available space by
+   providing both a top and bottom margin.  A top margin of 3rem and a
+   bottom margin of 2rem push the game content away from the header
+   and footer while allowing it to sit more centrally on the screen. */
+.sort-game, .memory-game, .fruit-game, .habitat-game, .puzzle-game {
+    /* Provide extra top margin to push the mini games further down the phone
+       display.  A 4rem top and 3rem bottom margin helps centre the game
+       content between the header and footer so the game no longer sits
+       flush against the top of the screen. */
+    margin: 4rem auto 3rem;
 }
 
 /* ===================== Draw and Colour canvases ===================== */

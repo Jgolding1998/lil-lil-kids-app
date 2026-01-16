@@ -25,7 +25,11 @@
       <button id="back-button" aria-label="Close app" title="Close app">×</button>
       <!-- Embedded app iframe -->
       <!-- Load the flattened app entry point -->
-      <iframe id="app-frame" src="app_index.html" title="Lil Lil Kids App" loading="lazy"></iframe>
+      <!-- Append a version query string to the app frame src so that the
+           service worker fetches the latest version of app_index.html.  This
+           prevents cached versions of the app from persisting after you make
+           changes.  Increment this value whenever you modify app_index.html. -->
+      <iframe id="app-frame" src="app_index.html?v=15" title="Lil Lil Kids App" loading="lazy"></iframe>
     </div>
   </div>
 

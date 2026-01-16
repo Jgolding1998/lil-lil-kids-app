@@ -7,7 +7,8 @@
     <title>Lil Lil Kids App</title>
     <!-- Append a version query string to bust caches when the CSS
          changes.  Increment this value whenever you modify app_style.css. -->
-    <link rel="stylesheet" href="app_style.css?v=14">
+    <!-- Bump the version number whenever you modify app_style.css to bust caches -->
+    <link rel="stylesheet" href="app_style.css?v=26">
 </head>
 <body>
     <!-- Loading screen -->
@@ -28,20 +29,25 @@
         <main>
             <!-- Section menu: choose between Learn, Color, Draw and Games -->
             <div id="section-menu" class="section-menu">
+                <!-- Each section card includes an icon and label.  Icons are
+                     rendered using simple emoji to make the menu more
+                     engaging for children.  Feel free to replace these
+                     characters with your own artwork or image tags if you
+                     prefer. -->
                 <div class="section-card" data-section="learn">
-                    <div class="section-icon"></div>
+                    <div class="section-icon" aria-hidden="true">📖</div>
                     <div class="section-label">Learn</div>
                 </div>
                 <div class="section-card" data-section="color">
-                    <div class="section-icon"></div>
+                    <div class="section-icon" aria-hidden="true">🎨</div>
                     <div class="section-label">Color</div>
                 </div>
                 <div class="section-card" data-section="draw">
-                    <div class="section-icon"></div>
+                    <div class="section-icon" aria-hidden="true">✏️</div>
                     <div class="section-label">Draw</div>
                 </div>
                 <div class="section-card" data-section="games">
-                    <div class="section-icon"></div>
+                    <div class="section-icon" aria-hidden="true">🎮</div>
                     <div class="section-label">Games</div>
                 </div>
             </div>
@@ -99,20 +105,22 @@
                 <p class="subtitle">Choose a game to play!</p>
                 <!-- Game menu: allows children to pick which game to play -->
                 <div id="game-menu" class="game-menu">
+                    <!-- Game cards now include emoji icons to help
+                         children understand the game concept at a glance. -->
                     <div class="game-card" data-game="sort">
-                        <div class="game-icon"></div>
+                        <div class="game-icon" aria-hidden="true">📦</div>
                         <div class="game-label">Sorting</div>
                     </div>
                     <div class="game-card" data-game="memory">
-                        <div class="game-icon"></div>
+                        <div class="game-icon" aria-hidden="true">🧠</div>
                         <div class="game-label">Memory</div>
                     </div>
                     <div class="game-card" data-game="fruit">
-                        <div class="game-icon"></div>
+                        <div class="game-icon" aria-hidden="true">🍎</div>
                         <div class="game-label">Catch</div>
                     </div>
                     <div class="game-card" data-game="habitat">
-                        <div class="game-icon"></div>
+                        <div class="game-icon" aria-hidden="true">🌳</div>
                         <div class="game-label">Habitats</div>
                     </div>
                 </div>
@@ -123,21 +131,23 @@
                     <div id="draggable-area" class="draggable-area"></div>
                     <div id="game-success-message">Great job!</div>
                     <!-- Restart button allows children to play again -->
-                    <button id="game-reset-btn" class="clear-btn" hidden>Restart</button>
+                    <button id="game-reset-btn" class="clear-btn" hidden style="display: none">Restart</button>
                 </div>
                 <!-- Memory game area -->
                 <div id="memory-game" class="memory-game" hidden>
                     <div id="memory-board" class="memory-board"></div>
                     <div id="memory-success-message" class="memory-success-message">You matched them all!</div>
                     <!-- Restart button for memory game -->
-                    <button id="memory-reset-btn" class="clear-btn" hidden>Play Again</button>
+                    <button id="memory-reset-btn" class="clear-btn" hidden style="display: none">Play Again</button>
                 </div>
                 <!-- Fruit catching game area -->
                 <div id="fruit-game" class="fruit-game" hidden>
-                    <div id="fruit-scoreboard">Score: 0</div>
+                    <!-- Hide the scoreboard by default so it doesn't leak into the game menu.  It will be shown when the fruit game starts. -->
+                    <div id="fruit-scoreboard" style="display: none">Score: 0</div>
                     <div id="fruit-area" class="fruit-area"></div>
-                    <div id="fruit-success-message" class="fruit-success-message">Great job!</div>
-                    <button id="fruit-reset-btn" class="clear-btn" hidden>Play Again</button>
+                    <!-- Success message also hidden by default -->
+                    <div id="fruit-success-message" class="fruit-success-message" style="display: none">Great job!</div>
+                    <button id="fruit-reset-btn" class="clear-btn" hidden style="display: none">Play Again</button>
                 </div>
                 <!-- Animal habitats game area -->
                 <div id="habitat-game" class="habitat-game" hidden>
@@ -145,7 +155,7 @@
                     <div id="habitat-drop" class="habitat-drop"></div>
                     <div id="habitat-drag" class="habitat-drag"></div>
                     <div id="habitat-success-message" class="habitat-success-message">Well done!</div>
-                    <button id="habitat-reset-btn" class="clear-btn" hidden>Play Again</button>
+                    <button id="habitat-reset-btn" class="clear-btn" hidden style="display: none">Play Again</button>
                 </div>
 
                 <!-- Back button to return to game menu -->
@@ -170,7 +180,8 @@
     </div>
 
     <!-- Load the main JavaScript file (increment version when modified) -->
-    <script src="app_script.js?v=18"></script>
+    <!-- Bump the version number whenever you modify app_script.js to bust caches -->
+    <script src="app_script.js?v=23"></script>
     <!-- Register the service worker -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -235,6 +246,14 @@
                         showGameMenu();
                     }
                 });
+            }
+
+            // On initial load of the games section, call showGameMenu() to
+            // ensure that reset buttons, scoreboards and success messages
+            // remain hidden.  Without this call the default hidden
+            // attribute may be overridden by runtime state.
+            if (typeof showGameMenu === 'function') {
+                showGameMenu();
             }
         });
     </script>

@@ -553,6 +553,9 @@ function returnToMenu() {
     const memoryReset = document.getElementById('memory-reset-btn');
     const sortSuccess = document.getElementById('game-success-message');
     const memSuccess = document.getElementById('memory-success-message');
+    const fruitScore = document.getElementById('fruit-scoreboard');
+    const fruitSuccess = document.getElementById('fruit-success-message');
+    const habitatSuccess = document.getElementById('habitat-success-message');
     const puzzleSuccess = document.getElementById('puzzle-success-message');
       if (menu) menu.hidden = false;
       if (sortGame) sortGame.hidden = true;
@@ -561,14 +564,46 @@ function returnToMenu() {
       if (habitatGame) habitatGame.hidden = true;
     if (puzzleGame) puzzleGame.hidden = true;
       if (backBtn) backBtn.hidden = true;
-    if (sortReset) sortReset.hidden = true;
-    if (memoryReset) memoryReset.hidden = true;
-    if (fruitReset) fruitReset.hidden = true;
-    if (habitatReset) habitatReset.hidden = true;
-    if (puzzleReset) puzzleReset.hidden = true;
+    if (sortReset) {
+      sortReset.hidden = true;
+      sortReset.style.display = 'none';
+    }
+    if (memoryReset) {
+      memoryReset.hidden = true;
+      memoryReset.style.display = 'none';
+    }
+    if (fruitReset) {
+      fruitReset.hidden = true;
+      fruitReset.style.display = 'none';
+    }
+    if (habitatReset) {
+      habitatReset.hidden = true;
+      habitatReset.style.display = 'none';
+    }
+    if (puzzleReset) {
+      puzzleReset.hidden = true;
+      puzzleReset.style.display = 'none';
+    }
     if (sortSuccess) sortSuccess.style.display = 'none';
     if (memSuccess) memSuccess.style.display = 'none';
+    // Hide the fruit scoreboard and success message when returning to menu
+    if (fruitScore) fruitScore.style.display = 'none';
+    if (fruitSuccess) fruitSuccess.style.display = 'none';
+    // Hide habitat success message when returning to menu
+    if (habitatSuccess) habitatSuccess.style.display = 'none';
     if (puzzleSuccess) puzzleSuccess.style.display = 'none';
+
+      // When returning to the game menu, restore the header and footer
+      // visibility so the UI feels like a separate screen.  This is
+      // complementary to hiding them in enterGame().
+      // Restore the in‑app header and footer (the ones inside #app) when returning
+      // to the game menu.  Selecting #app first ensures we don't inadvertently
+      // hide the page's global header and footer.
+      const appEl = document.getElementById('app');
+      const headerEl = appEl ? appEl.querySelector('header') : null;
+      const footerEl = appEl ? appEl.querySelector('footer') : null;
+      if (headerEl) headerEl.style.display = '';
+      if (footerEl) footerEl.style.display = '';
     }
 
     /**
@@ -585,6 +620,26 @@ function returnToMenu() {
       const backBtn = document.getElementById('game-back-btn');
       if (menu) menu.hidden = true;
       if (backBtn) backBtn.hidden = false;
+      // Keep the in‑app header and footer visible while a mini‑game is active.
+      // The Home and Settings buttons live in the header and should remain
+      // accessible during game play.  Previously we hid these elements to
+      // maximise space, but this left the user without navigation.  By
+      // removing the code that modified header/footer visibility, the
+      // elements retain their default display styles.
+
+      // Explicitly restore the header and footer display styles in case they were
+      // previously hidden by another game.  Selecting the app container first
+      // ensures we are only affecting the header and footer inside the app
+      // iframe, not the global page header/footer.  Setting the display
+      // property to an empty string lets the elements fall back to their
+      // stylesheet‑defined display (flex for header and block for footer).
+      const appEl = document.getElementById('app');
+      if (appEl) {
+        const appHeader = appEl.querySelector('header');
+        const appFooter = appEl.querySelector('footer');
+        if (appHeader) appHeader.style.display = '';
+        if (appFooter) appFooter.style.display = '';
+      }
       const sortReset = document.getElementById('game-reset-btn');
       const memoryReset = document.getElementById('memory-reset-btn');
       const fruitReset = document.getElementById('fruit-reset-btn');
@@ -599,10 +654,22 @@ function returnToMenu() {
         if (fruitGame) fruitGame.hidden = true;
         if (habitatGame) habitatGame.hidden = true;
         // Show sort reset button and hide other reset buttons
-        if (sortReset) sortReset.hidden = false;
-        if (memoryReset) memoryReset.hidden = true;
-        if (fruitReset) fruitReset.hidden = true;
-        if (habitatReset) habitatReset.hidden = true;
+        if (sortReset) {
+          sortReset.hidden = false;
+          sortReset.style.display = 'inline-block';
+        }
+        if (memoryReset) {
+          memoryReset.hidden = true;
+          memoryReset.style.display = 'none';
+        }
+        if (fruitReset) {
+          fruitReset.hidden = true;
+          fruitReset.style.display = 'none';
+        }
+        if (habitatReset) {
+          habitatReset.hidden = true;
+          habitatReset.style.display = 'none';
+        }
         initSortGame();
       } else if (gameName === 'memory') {
         if (memoryGame) memoryGame.hidden = false;
@@ -610,10 +677,22 @@ function returnToMenu() {
         if (fruitGame) fruitGame.hidden = true;
         if (habitatGame) habitatGame.hidden = true;
         // Show memory reset button and hide other reset buttons
-        if (memoryReset) memoryReset.hidden = false;
-        if (sortReset) sortReset.hidden = true;
-        if (fruitReset) fruitReset.hidden = true;
-        if (habitatReset) habitatReset.hidden = true;
+        if (memoryReset) {
+          memoryReset.hidden = false;
+          memoryReset.style.display = 'inline-block';
+        }
+        if (sortReset) {
+          sortReset.hidden = true;
+          sortReset.style.display = 'none';
+        }
+        if (fruitReset) {
+          fruitReset.hidden = true;
+          fruitReset.style.display = 'none';
+        }
+        if (habitatReset) {
+          habitatReset.hidden = true;
+          habitatReset.style.display = 'none';
+        }
         initMemoryGame();
       } else if (gameName === 'fruit') {
         if (fruitGame) fruitGame.hidden = false;
@@ -621,10 +700,22 @@ function returnToMenu() {
         if (memoryGame) memoryGame.hidden = true;
         if (habitatGame) habitatGame.hidden = true;
         // Show fruit reset button and hide others
-        if (fruitReset) fruitReset.hidden = false;
-        if (sortReset) sortReset.hidden = true;
-        if (memoryReset) memoryReset.hidden = true;
-        if (habitatReset) habitatReset.hidden = true;
+        if (fruitReset) {
+          fruitReset.hidden = false;
+          fruitReset.style.display = 'inline-block';
+        }
+        if (sortReset) {
+          sortReset.hidden = true;
+          sortReset.style.display = 'none';
+        }
+        if (memoryReset) {
+          memoryReset.hidden = true;
+          memoryReset.style.display = 'none';
+        }
+        if (habitatReset) {
+          habitatReset.hidden = true;
+          habitatReset.style.display = 'none';
+        }
         initFruitGame();
       } else if (gameName === 'habitat') {
         if (habitatGame) habitatGame.hidden = false;
@@ -633,11 +724,26 @@ function returnToMenu() {
         if (fruitGame) fruitGame.hidden = true;
         if (puzzleGame) puzzleGame.hidden = true;
         // Show habitat reset button and hide others
-        if (habitatReset) habitatReset.hidden = false;
-        if (sortReset) sortReset.hidden = true;
-        if (memoryReset) memoryReset.hidden = true;
-        if (fruitReset) fruitReset.hidden = true;
-        if (puzzleReset) puzzleReset.hidden = true;
+        if (habitatReset) {
+          habitatReset.hidden = false;
+          habitatReset.style.display = 'inline-block';
+        }
+        if (sortReset) {
+          sortReset.hidden = true;
+          sortReset.style.display = 'none';
+        }
+        if (memoryReset) {
+          memoryReset.hidden = true;
+          memoryReset.style.display = 'none';
+        }
+        if (fruitReset) {
+          fruitReset.hidden = true;
+          fruitReset.style.display = 'none';
+        }
+        if (puzzleReset) {
+          puzzleReset.hidden = true;
+          puzzleReset.style.display = 'none';
+        }
         initHabitatGame();
       } else if (gameName === 'puzzle') {
         if (puzzleGame) puzzleGame.hidden = false;
@@ -646,11 +752,26 @@ function returnToMenu() {
         if (fruitGame) fruitGame.hidden = true;
         if (habitatGame) habitatGame.hidden = true;
         // Show puzzle reset button and hide others
-        if (puzzleReset) puzzleReset.hidden = false;
-        if (sortReset) sortReset.hidden = true;
-        if (memoryReset) memoryReset.hidden = true;
-        if (fruitReset) fruitReset.hidden = true;
-        if (habitatReset) habitatReset.hidden = true;
+        if (puzzleReset) {
+          puzzleReset.hidden = false;
+          puzzleReset.style.display = 'inline-block';
+        }
+        if (sortReset) {
+          sortReset.hidden = true;
+          sortReset.style.display = 'none';
+        }
+        if (memoryReset) {
+          memoryReset.hidden = true;
+          memoryReset.style.display = 'none';
+        }
+        if (fruitReset) {
+          fruitReset.hidden = true;
+          fruitReset.style.display = 'none';
+        }
+        if (habitatReset) {
+          habitatReset.hidden = true;
+          habitatReset.style.display = 'none';
+        }
         initPuzzleGame();
       }
     }
@@ -877,7 +998,46 @@ function setupDrawingCanvas(canvas) {
   const ctx = canvas.getContext('2d');
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  // Set a baseline line width.  This value will be scaled to match
+  // the device pixel ratio when the canvas is resized.  Without
+  // scaling, drawing coordinates can become misaligned on high‑DPI
+  // screens because the canvas internal resolution differs from its
+  // displayed size.
   ctx.lineWidth = 6;
+
+  // Resize the drawing surface to match its on‑screen dimensions
+  // and account for the device pixel ratio.  The canvas width and
+  // height attributes define the coordinate system used by the
+  // drawing context.  If these do not match the element's CSS size
+  // then the browser will scale the canvas automatically, causing
+  // pointer positions to be offset from the drawn lines.  To fix this
+  // we explicitly resize the canvas whenever its bounding box changes
+  // and apply a corresponding scale to the context.
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    // Compute current logical size of the canvas by dividing by the
+    // pixel ratio.  Only update if the size has changed to avoid
+    // clearing drawings unnecessarily.
+    const currentWidth = canvas.width / dpr;
+    const currentHeight = canvas.height / dpr;
+    if (Math.round(currentWidth) !== Math.round(rect.width) || Math.round(currentHeight) !== Math.round(rect.height)) {
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      // Reset transforms before scaling; otherwise scaling will
+      // accumulate each time resizeCanvas() runs.
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      // Update line width to maintain consistent visual width across
+      // pixel densities.  Use any existing dataset value if present.
+      const lw = parseFloat(canvas.dataset.linewidth || 6);
+      ctx.lineWidth = lw;
+    }
+  }
+  // Perform an initial resize and register a handler for window
+  // resize events so the canvas stays synchronised with its CSS size.
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
   let drawing = false;
 
   function getPos(e) {
@@ -1105,8 +1265,12 @@ function initFruitGame() {
   let score = 0;
   let fruitsCaught = 0;
   scoreEl.textContent = 'Score: 0';
+  // Ensure the scoreboard is visible when starting the game
+  scoreEl.style.display = 'block';
   successMsg.style.display = 'none';
+  // Hide the reset button completely at the start of the game
   resetBtn.hidden = true;
+  resetBtn.style.display = 'none';
   // Possible colours and emojis for fruits
   const colours = ['#E74C3C','#E67E22','#F1C40F','#27AE60','#3498DB','#9B59B6','#FF66CC','#8E44AD','#1ABC9C','#F39C12'];
   const emojis = ['🍎','🍌','🍇','🍊','🍓','🍍'];
@@ -1138,7 +1302,9 @@ function initFruitGame() {
       scoreEl.textContent = 'Score: ' + score;
       if (fruitsCaught >= 10) {
         successMsg.style.display = 'block';
+        // Show the reset button when the child has caught enough fruits
         resetBtn.hidden = false;
+        resetBtn.style.display = 'inline-block';
         clearInterval(spawnInterval);
       }
     });
