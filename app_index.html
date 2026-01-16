@@ -165,6 +165,8 @@
                 <input type="checkbox" id="music-toggle">
                 <span>Background music</span>
             </label>
+     
+            
             <button id="close-settings-btn" class="close-settings-btn">Close</button>
         </div>
     </div>
@@ -173,7 +175,7 @@
     <script src="app_script.js?v=17"></script>
     <!-- Register the service worker -->
     <script>
-        if ('serviceWorker' in navigator) {
+        iator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('sw.js').catch(function(err) {
                     console.error('Service worker registration failed:', err);
@@ -181,5 +183,66 @@
             });
         }
     </script>
-</body>
+</
+   
+
+    
+    body>
 </html>
+    <!-- Custom script for brush size and games UI -->
+
+    <script>
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                                              const colorCanvas = document.getElementById('color-canvas');
+        const drawCanvas = document.getElementById('draw-canvas');
+        const colorBrush = document.getElementById('color-brush-range');
+        const drawBrush = document.getElementById('draw-brush-range');
+
+                                              if (colorCanvas && colorBrush) {
+            const colorCtx = colorCanvas.getContext('2d');
+            colorCtx.lineWidth = parseInt(colorBrush.value);
+            colorBrush.addEventListener('input', () => {
+                colorCtx.lineWidth = parseInt(colorBrush.value);
+                colorCanvas.dataset.linewidth = colorBrush.value;
+            });
+        }
+
+                                              if (drawCanvas && drawBrush) {
+            const drawCtx = drawCanvas.getContext('2d');
+            drawCtx.lineWidth = parseInt(drawBrush.value);
+            drawBrush.addEventListener('input', () => {
+                drawCtx.lineWidth = parseInt(drawBrush.value);
+                drawCanvas.dataset.linewidth = drawBrush.value;
+            });
+        }
+
+                                              // Hide/show games heading and menu when selecting games
+        const gamesHeading = document.querySelector('#games-section h2');
+        const gameMenu = document.getElementById('game-menu');
+
+        document.querySelectorAll('#games-section .game-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const gameName = card.dataset.game;
+                if (gamesHeading) gamesHeading.hidden = true;
+                if (gameMenu) gameMenu.hidden = true;
+                if (typeof enterGame === 'function') {
+                    enterGame(gameName);
+                }
+            });
+        });
+
+                                              const backBtn = document.getElementById('game-back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                if (gamesHeading) gamesHeading.hidden = false;
+                if (gameMenu) gameMenu.hidden = false;
+                if (typeof showGameMenu === 'function') {
+                    showGameMenu();
+                }
+            });
+        }
+    });
+    </script>
+
