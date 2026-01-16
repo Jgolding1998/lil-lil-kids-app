@@ -181,12 +181,12 @@
 
     <!-- Load the main JavaScript file (increment version when modified) -->
     <!-- Bump the version number whenever you modify app_script.js to bust caches -->
-    <script src="app_script.js?v=23"></script>
+    <<script src="app_script.js?v=25"></script>
     <!-- Register the service worker -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js').catch(function(err) {
+                navigator.serviceWorker.register('sw.js?v=2').catch(function(err) {
                     console.error('Service worker registration failed:', err);
                 });
             });
