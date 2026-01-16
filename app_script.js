@@ -1102,29 +1102,23 @@ function setupDrawingCanvas(canvas) {
 // on the canvas element via a data attribute.  The transform origin
 // must be set (in CSS) to top left for scaling to behave predictably.
 function enablePinchZoom(canvas) {
-  // We implement pinch‑to‑zoom by tracking the distance between two
-  // touch points and the midpoint of the pinch.  The scale is
-  // anchored around the initial midpoint by updating the transform
-  // origin on each move.  This prevents the canvas from snapping to
-  // the top‑left corner when zooming and keeps the zoom centred on
-  // where the child is pinching.
+  // Implement pinch‑to‑zoom by tracking the distance between two
+  // touch points.  The scale is anchored to the top‑left corner to
+  // avoid resizing the containing box.  We intentionally avoid
+  // updating the transform origin based on the pinch midpoint because
+  // doing so shifts the element and can change the size of the
+  // surrounding container.  Instead, children can zoom relative to
+  // the top‑left corner which preserves the layout.  The current
+  // scale is stored on the canvas via a data attribute so the
+  // drawing pointer can be adjusted accordingly.
   let initialDistance = null;
   let initialScale = 1;
-  let initialMidpoint = null;
   canvas.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches.length === 2) {
       e.preventDefault();
       const [t1, t2] = e.touches;
       initialDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
       initialScale = parseFloat(canvas.dataset.scale) || 1;
-      // Compute the midpoint relative to the canvas so we can anchor
-      // the zoom around this point.  We subtract the canvas
-      // bounding‑rect so that the origin is expressed in canvas
-      // coordinates.
-      const rect = canvas.getBoundingClientRect();
-      const mx = ((t1.clientX + t2.clientX) / 2) - rect.left;
-      const my = ((t1.clientY + t2.clientY) / 2) - rect.top;
-      initialMidpoint = { x: mx, y: my };
     }
   }, { passive: false });
   canvas.addEventListener('touchmove', (e) => {
@@ -1136,16 +1130,11 @@ function enablePinchZoom(canvas) {
       // Clamp the scale for usability
       newScale = Math.max(0.5, Math.min(3, newScale));
       canvas.dataset.scale = newScale;
-      // Compute the current midpoint relative to the canvas.  We will
-      // use the initial midpoint as the transform origin so that the
-      // zoom stays centred on where the child pinched.
-      const rect = canvas.getBoundingClientRect();
-      const mx = ((t1.clientX + t2.clientX) / 2) - rect.left;
-      const my = ((t1.clientY + t2.clientY) / 2) - rect.top;
-      if (initialMidpoint) {
-        // Set the transform origin based on the initial midpoint.
-        canvas.style.transformOrigin = `${initialMidpoint.x}px ${initialMidpoint.y}px`;
-      }
+      // Always anchor zoom relative to the top‑left corner (0 0).  This
+      // prevents the canvas from shifting within its container during
+      // zooming which can make it appear that the entire box is
+      // resizing.  The transformOrigin is set outside of this helper
+      // via style on the canvas element.
       canvas.style.transform = `scale(${newScale})`;
     }
   }, { passive: false });
@@ -1153,7 +1142,6 @@ function enablePinchZoom(canvas) {
     // Reset initial values when fingers lifted
     if (!e.touches || e.touches.length < 2) {
       initialDistance = null;
-      initialMidpoint = null;
     }
   });
 }

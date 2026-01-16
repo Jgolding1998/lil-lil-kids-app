@@ -184,7 +184,7 @@
     <!-- Bump the version number whenever you modify app_script.js to bust caches -->
     <!-- Incremented version to force browsers to load updated script and service worker -->
     <!-- Bump the version number whenever you modify app_script.js to bust caches -->
-    <script src="app_script.js?v=27"></script>
+    <script src="app_script.js?v=28"></script>
     <!-- Register the service worker -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -193,7 +193,7 @@
                 // changes to sw.js invalidate older cached versions and
                 // immediately update the worker in the browser.
                 // Register service worker with updated version (v3) to ensure fresh cache
-                navigator.serviceWorker.register('sw.js?v=3').catch(function(err) {
+                navigator.serviceWorker.register('sw.js?v=4').catch(function(err) {
                     console.error('Service worker registration failed:', err);
                 });
             });

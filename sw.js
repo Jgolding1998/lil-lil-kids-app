@@ -5,7 +5,15 @@
 // cache on subsequent requests.  Additional resources are added to the
 // cache on demand via the fetch handler.
 
-const CACHE_NAME = 'lil-lil-kids-cache-v3'
+// Bump the cache version whenever any assets are updated so that
+// browsers will fetch fresh versions rather than serving from an old
+// service worker cache. Changing this constant forces a new cache
+// to be created and the old one deleted during activation.
+// Bump the cache name to v4 whenever assets like background music or
+// scripts are updated.  Incrementing this value forces the browser
+// to fetch and cache fresh versions of files instead of serving
+// outdated resources from a previous cache.
+const CACHE_NAME = 'lil-lil-kids-cache-v4';
 
 // List of core files to pre‑cache.  These files are essential for
 // loading the app shell.  We include HTML, CSS, JS and icon.  The
