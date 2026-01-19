@@ -31,14 +31,28 @@ header {
        phone frame’s border area. */
     top: 1rem;
     left: 1rem;
-    font-size: 2rem;
-    border: none;
-    background: none;
+    font-size: 1.6rem;
+    /* Give the home button a distinct circular background so it
+       visually appears as a button.  Use a solid light colour with a
+       contrasting border to ensure it stands out against the header
+       gradient. */
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ff80b5;
+    /* Use a soft pink fill to differentiate the button from the
+       header background.  The subtle fill combined with the border
+       creates a clear circular button. */
+    background-color: #fff4fa;
     color: #ff80b5;
     cursor: pointer;
     line-height: 1;
-    /* Layer the button above the title text.  Assigning a z-index
-       ensures the icon appears on top of the header's centred title. */
+    /* Add a subtle shadow to lift the button off the page */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Ensure the button sits above the title text. */
     z-index: 1;
 }
 /* Settings button: adjust positioning to align with home button */
@@ -48,12 +62,22 @@ header {
        a 1rem offset mirrors the home button’s spacing on the left. */
     top: 1rem;
     right: 1rem;
-    font-size: 2rem;
-    border: none;
-    background: none;
+    font-size: 1.6rem;
+    /* Mirror the home button styling for consistency.  Provide a
+       clearly defined circular button with a light fill and
+       contrasting border. */
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ff80b5;
+    background-color: #fff4fa;
     color: #ff80b5;
     cursor: pointer;
     line-height: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     /* Layer the button above the title text. */
     z-index: 1;
 }
@@ -720,6 +744,33 @@ footer {
 }
 .settings-btn:active {
     transform: scale(0.9);
+}
+
+/*
+ * Override the appearance of the home and settings buttons.
+ *
+ * The default header button styles above set only positioning and font
+ * properties, leaving the icons floating on the page. Children found
+ * it difficult to recognise these icons as interactive elements. To
+ * address this, apply a uniform circular shape, border and fill to
+ * both buttons. This rule appears after the original definitions so
+ * that it overrides conflicting properties (background and border)
+ * declared earlier in the file. The dimensions mirror those used
+ * elsewhere in the UI for consistent sizing.
+ */
+.home-btn,
+.settings-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #ff80b5;
+    background-color: #fff4fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #ff80b5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Settings modal overlay */
