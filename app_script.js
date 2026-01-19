@@ -1042,19 +1042,22 @@ function setupDrawingCanvas(canvas) {
 
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
-    // Determine the current scale for pinch‑to‑zoom.  If no scale is
-    // defined, default to 1.  Divide the pointer coordinates by the
-    // scale so drawing aligns with the transformed canvas.
+    // Incorporate the current translation and scale applied via pinch‑to‑zoom.
+    // The translation values store how far the canvas has been panned when
+    // zooming.  Subtract these offsets before dividing by the scale to
+    // map pointer positions back into the canvas coordinate system.
     const scale = parseFloat(canvas.dataset.scale) || 1;
+    const tx = parseFloat(canvas.dataset.translateX) || 0;
+    const ty = parseFloat(canvas.dataset.translateY) || 0;
     if (e.touches && e.touches.length) {
       return {
-        x: (e.touches[0].clientX - rect.left) / scale,
-        y: (e.touches[0].clientY - rect.top) / scale
+        x: (e.touches[0].clientX - rect.left - tx) / scale,
+        y: (e.touches[0].clientY - rect.top - ty) / scale
       };
     } else {
       return {
-        x: (e.clientX - rect.left) / scale,
-        y: (e.clientY - rect.top) / scale
+        x: (e.clientX - rect.left - tx) / scale,
+        y: (e.clientY - rect.top - ty) / scale
       };
     }
   }
@@ -1102,46 +1105,94 @@ function setupDrawingCanvas(canvas) {
 // on the canvas element via a data attribute.  The transform origin
 // must be set (in CSS) to top left for scaling to behave predictably.
 function enablePinchZoom(canvas) {
-  // Implement pinch‑to‑zoom by tracking the distance between two
-  // touch points.  The scale is anchored to the top‑left corner to
-  // avoid resizing the containing box.  We intentionally avoid
-  // updating the transform origin based on the pinch midpoint because
-  // doing so shifts the element and can change the size of the
-  // surrounding container.  Instead, children can zoom relative to
-  // the top‑left corner which preserves the layout.  The current
-  // scale is stored on the canvas via a data attribute so the
-  // drawing pointer can be adjusted accordingly.
-  let initialDistance = null;
-  let initialScale = 1;
-  canvas.addEventListener('touchstart', (e) => {
+  // Support both scaling and panning during pinch‑to‑zoom.  We track the
+  // starting distance and midpoint between two touch points, as well as
+  // the current scale and translation offsets.  During the gesture we
+  // compute a new scale and translation so the pinch midpoint stays
+  // anchored under the fingers.  Data attributes on the canvas store
+  // the scale and translation so drawing coordinates can be adjusted
+  // accordingly.
+  let startDist = 0;
+  let startScale = 1;
+  let startMid = null;
+  let startTranslateX = 0;
+  let startTranslateY = 0;
+
+  // Helper to apply the current transform.  Reads the scale and
+  // translation from the dataset and sets the CSS transform property.
+  function applyTransform() {
+    const scale = parseFloat(canvas.dataset.scale) || 1;
+    const tx = parseFloat(canvas.dataset.translateX) || 0;
+    const ty = parseFloat(canvas.dataset.translateY) || 0;
+    canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+
+  // Initialise dataset values if they are not present.  Without
+  // explicit initialisation some browsers treat undefined dataset
+  // properties as the string "undefined", which breaks parseFloat().
+  if (canvas.dataset.scale === undefined) canvas.dataset.scale = 1;
+  if (canvas.dataset.translateX === undefined) canvas.dataset.translateX = 0;
+  if (canvas.dataset.translateY === undefined) canvas.dataset.translateY = 0;
+  // Apply initial transform to ensure any previous scale/translation
+  // persists after reloading.
+  applyTransform();
+
+  canvas.addEventListener('touchstart', function (e) {
     if (e.touches && e.touches.length === 2) {
       e.preventDefault();
       const [t1, t2] = e.touches;
-      initialDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-      initialScale = parseFloat(canvas.dataset.scale) || 1;
+      // Save starting values
+      startDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      startScale = parseFloat(canvas.dataset.scale) || 1;
+      startTranslateX = parseFloat(canvas.dataset.translateX) || 0;
+      startTranslateY = parseFloat(canvas.dataset.translateY) || 0;
+      startMid = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2
+      };
     }
   }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => {
-    if (e.touches && e.touches.length === 2 && initialDistance) {
+
+  canvas.addEventListener('touchmove', function (e) {
+    if (e.touches && e.touches.length === 2 && startDist > 0) {
       e.preventDefault();
       const [t1, t2] = e.touches;
-      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-      let newScale = initialScale * (dist / initialDistance);
-      // Clamp the scale for usability
+      const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      // Compute new scale relative to the starting distance
+      let newScale = startScale * (currentDist / startDist);
+      // Clamp scale between 0.5 and 3 for usability
       newScale = Math.max(0.5, Math.min(3, newScale));
+      // Compute current midpoint
+      const currentMid = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2
+      };
+      // Determine the canvas bounding rect to translate touch coordinates
+      const rect = canvas.getBoundingClientRect();
+      // Convert the starting midpoint into canvas local coordinates before
+      // any transform.  Subtract the current translation then divide by
+      // the starting scale to map back into unscaled coordinates.
+      const offsetX = (startMid.x - rect.left - startTranslateX) / startScale;
+      const offsetY = (startMid.y - rect.top - startTranslateY) / startScale;
+      // Compute new translation so that after scaling the point offsetX,offsetY
+      // appears under the current midpoint.  This keeps the pinch origin
+      // stationary relative to the fingers.
+      const newTranslateX = currentMid.x - rect.left - offsetX * newScale;
+      const newTranslateY = currentMid.y - rect.top - offsetY * newScale;
+      // Store the new values in data attributes
       canvas.dataset.scale = newScale;
-      // Always anchor zoom relative to the top‑left corner (0 0).  This
-      // prevents the canvas from shifting within its container during
-      // zooming which can make it appear that the entire box is
-      // resizing.  The transformOrigin is set outside of this helper
-      // via style on the canvas element.
-      canvas.style.transform = `scale(${newScale})`;
+      canvas.dataset.translateX = newTranslateX;
+      canvas.dataset.translateY = newTranslateY;
+      // Apply the transform
+      applyTransform();
     }
   }, { passive: false });
-  canvas.addEventListener('touchend', (e) => {
-    // Reset initial values when fingers lifted
+
+  canvas.addEventListener('touchend', function (e) {
+    // Reset the starting gesture when one of the touches is lifted
     if (!e.touches || e.touches.length < 2) {
-      initialDistance = null;
+      startDist = 0;
+      startMid = null;
     }
   });
 }

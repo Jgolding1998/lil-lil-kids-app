@@ -590,11 +590,29 @@ footer {
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
-    /* Prevent the canvas from resizing its container when zooming.  By
-       hiding overflow on the wrapper the scaled canvas remains clipped
-       to its original bounds so the palette and brush controls stay
-       aligned. */
+    /* Leave overflow visible here.  The new .canvas-holder element
+       encapsulates the canvas and clips the scaled drawing so that
+       the palette and brush controls are unaffected by pinch zoom. */
+    overflow: visible;
+}
+
+/* Holder for the canvas itself.  This container has a fixed height and
+   hides overflow so that zooming only affects the drawing and not
+   surrounding UI elements. */
+.canvas-holder {
+    width: 100%;
+    height: 400px;
     overflow: hidden;
+    position: relative;
+}
+
+/* Ensure the canvas fills the holder without affecting layout.  It is
+   displayed as a block to remove inline whitespace and set its
+   dimensions via the holder. */
+.canvas-holder .draw-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 /* Canvas element used for drawing/colouring */
@@ -606,6 +624,10 @@ footer {
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     touch-action: none; /* Prevent default touch scrolling while drawing */
+    /* Anchor all transforms to the top‑left corner.  Without this, scaling
+       occurs relative to the centre of the element which causes the
+       entire container to appear to resize when pinch zooming. */
+    transform-origin: 0 0;
 }
 
 /* Colour palette for drawing/colouring.  Colours appear as circles. */

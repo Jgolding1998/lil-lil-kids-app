@@ -8,7 +8,8 @@
     <!-- Append a version query string to bust caches when the CSS
          changes.  Increment this value whenever you modify app_style.css. -->
     <!-- Bump the version number whenever you modify app_style.css to bust caches -->
-    <link rel="stylesheet" href="app_style.css?v=27">
+    <!-- Bump the version number whenever you modify app_style.css to bust caches -->
+    <link rel="stylesheet" href="app_style.css?v=30">
 </head>
 <body>
     <!-- Loading screen -->
@@ -70,16 +71,21 @@
                 <div id="color-gallery" class="color-gallery"></div>
                 <div id="color-canvas-container" class="color-canvas-container" hidden>
                     <button id="color-back-btn" class="back-btn" aria-label="Back to gallery">&#x2190; Back</button>
-                    <div id="color-canvas-wrapper" class="canvas-wrapper">
+                <div id="color-canvas-wrapper" class="canvas-wrapper">
+                    <!-- Wrap the canvas in a holder so that pinch‑to‑zoom only scales the drawing and not
+                         the surrounding controls.  The holder has a fixed height and hides overflow so
+                         the scaled canvas remains clipped within its original bounds. -->
+                    <div class="canvas-holder">
                         <canvas id="color-canvas" class="draw-canvas" width="300" height="400"></canvas>
-                        <div id="color-palette" class="palette"></div>
-                        <!-- Brush size control -->
-                        <div class="brush-controls">
-                            <label for="color-brush-range">Brush size:</label>
-                            <input type="range" id="color-brush-range" min="2" max="20" value="6"
-                                   oninput="document.getElementById('color-canvas').dataset.linewidth=this.value; document.getElementById('color-canvas').getContext('2d').lineWidth=this.value;">
-                        </div>
                     </div>
+                    <div id="color-palette" class="palette"></div>
+                    <!-- Brush size control -->
+                    <div class="brush-controls">
+                        <label for="color-brush-range">Brush size:</label>
+                        <input type="range" id="color-brush-range" min="2" max="20" value="6"
+                               oninput="document.getElementById('color-canvas').dataset.linewidth=this.value; document.getElementById('color-canvas').getContext('2d').lineWidth=this.value;">
+                    </div>
+                </div>
                     <button id="color-clear-btn" class="clear-btn">Clear</button>
                 </div>
             </div>
@@ -88,7 +94,12 @@
             <div id="draw-section" class="draw-section" hidden>
                 <p class="subtitle">Let your creativity fly!</p>
                 <div id="draw-canvas-wrapper" class="canvas-wrapper">
-                    <canvas id="draw-canvas" class="draw-canvas" width="300" height="400"></canvas>
+                    <!-- Wrap the canvas in a holder so that pinch‑to‑zoom only scales the drawing and not
+                         the surrounding controls.  The holder has a fixed height and hides overflow so
+                         the scaled canvas remains clipped within its original bounds. -->
+                    <div class="canvas-holder">
+                        <canvas id="draw-canvas" class="draw-canvas" width="300" height="400"></canvas>
+                    </div>
                     <div id="draw-palette" class="palette"></div>
                     <!-- Brush size control -->
                     <div class="brush-controls">
@@ -184,7 +195,7 @@
     <!-- Bump the version number whenever you modify app_script.js to bust caches -->
     <!-- Incremented version to force browsers to load updated script and service worker -->
     <!-- Bump the version number whenever you modify app_script.js to bust caches -->
-    <script src="app_script.js?v=28"></script>
+    <script src="app_script.js?v=29"></script>
     <!-- Register the service worker -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -193,7 +204,7 @@
                 // changes to sw.js invalidate older cached versions and
                 // immediately update the worker in the browser.
                 // Register service worker with updated version (v3) to ensure fresh cache
-                navigator.serviceWorker.register('sw.js?v=4').catch(function(err) {
+                navigator.serviceWorker.register('sw.js?v=6').catch(function(err) {
                     console.error('Service worker registration failed:', err);
                 });
             });
