@@ -39,10 +39,11 @@ header {
  * buttons.
  */
 header h1 {
-    /* Reduce the header title font size further so the text fits comfortably between
-       the circular home and settings buttons without overlapping. Smaller fonts
-       help maintain legibility on small screens while preserving spacing. */
-    font-size: 1.1rem;
+    /* Reduce the header title font size even more so the text fits comfortably
+       between the circular home and settings buttons without overlapping. A 1rem
+       font provides additional breathing room while maintaining legibility on
+       small screens. */
+    font-size: 1rem;
     margin: 0;
 }
 
