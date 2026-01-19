@@ -9,7 +9,10 @@
          changes.  Increment this value whenever you modify app_style.css. -->
     <!-- Bump the version number whenever you modify app_style.css to bust caches -->
     <!-- Bump the version number whenever you modify app_style.css to bust caches -->
-    <link rel="stylesheet" href="app_style.css?v=30">
+    <!-- Bump the version number whenever you modify app_style.css to bust caches -->
+    <!-- Updated CSS version to 33 to ensure browsers load the new
+         styles for the circular Home and Settings buttons -->
+    <link rel="stylesheet" href="app_style.css?v=33">
 </head>
 <body>
     <!-- Loading screen -->
@@ -195,7 +198,7 @@
     <!-- Bump the version number whenever you modify app_script.js to bust caches -->
     <!-- Incremented version to force browsers to load updated script and service worker -->
     <!-- Bump the version number whenever you modify app_script.js to bust caches -->
-    <script src="app_script.js?v=29"></script>
+    <script src="app_script.js?v=30"></script>
     <!-- Register the service worker -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -203,8 +206,8 @@
                 // Append a version query to the service worker URL so that
                 // changes to sw.js invalidate older cached versions and
                 // immediately update the worker in the browser.
-                // Register service worker with updated version (v3) to ensure fresh cache
-                navigator.serviceWorker.register('sw.js?v=6').catch(function(err) {
+                // Register service worker with updated version (v7) to ensure fresh cache
+                navigator.serviceWorker.register('sw.js?v=7').catch(function(err) {
                     console.error('Service worker registration failed:', err);
                 });
             });
