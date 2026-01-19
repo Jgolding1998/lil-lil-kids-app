@@ -23,6 +23,26 @@ header {
     position: relative;
 }
 
+/* Adjust the size of the header title so it fits between the home and
+   settings buttons. Without setting a specific font size, the h1
+   defaults to a large size that causes the circular buttons to overlap
+   the title on small screens. A smaller font keeps the title legible
+   while preserving layout. */
+/*
+ * Further reduce the header title font size so that the text fits
+ * comfortably between the circular home and settings buttons on
+ * small screens.  The previous size of 1.5rem still allowed the
+ * title to overlap the buttons when the app is viewed on a phone
+ * because the long string "Lil Lil Kids App" expands beyond the
+ * available space.  Dropping the font size to 1.3rem keeps the
+ * title legible while ensuring it remains centred between the
+ * buttons.
+ */
+header h1 {
+    font-size: 1.3rem;
+    margin: 0;
+}
+
 /* Home button: positioned in the header next to the settings button */
 .home-btn {
     position: absolute;
