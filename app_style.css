@@ -758,20 +758,32 @@ footer {
  * declared earlier in the file. The dimensions mirror those used
  * elsewhere in the UI for consistent sizing.
  */
-.home-btn,
-.settings-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 2px solid #ff80b5;
-    background-color: #fff4fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    color: #ff80b5;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+ /*
+  * Force the Home and Settings buttons to appear as proper circular buttons.
+  *
+  * Although the header defines base styles for these buttons, subsequent
+  * rules elsewhere in the stylesheet reset the background and border,
+  * causing the icons to lose their button appearance.  To ensure the
+  * circular shape and pink styling are always applied, we re‑declare
+  * all relevant properties here using !important.  This increases the
+  * specificity of the rule and guarantees it overrides earlier
+  * declarations without having to remove them.  If future changes add
+  * more button styles, this rule will still take precedence.
+  */
+ .home-btn,
+ .settings-btn {
+     width: 44px !important;
+     height: 44px !important;
+     border-radius: 50% !important;
+     border: 2px solid #ff80b5 !important;
+     background-color: #fff4fa !important;
+     display: flex !important;
+     align-items: center !important;
+     justify-content: center !important;
+     font-size: 1.6rem !important;
+     color: #ff80b5 !important;
+     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+ }
 
 /* Settings modal overlay */
 .settings-modal {
