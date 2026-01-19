@@ -14,7 +14,9 @@
          styles for the circular Home and Settings buttons -->
     <!-- Increment the version whenever app_style.css changes (v34 ensures
          browsers fetch the updated circular button styles). -->
-    <link rel="stylesheet" href="app_style.css?v=34">
+    <!-- Bump CSS version to 36 to ensure the updated header font size is loaded
+         (and to bust caches for the new circular button layout). -->
+    <link rel="stylesheet" href="app_style.css?v=36">
 </head>
 <body>
     <!-- Loading screen -->
@@ -209,8 +211,8 @@
                 // Append a version query to the service worker URL so that
                 // changes to sw.js invalidate older cached versions and
                 // immediately update the worker in the browser.
-                 // Register service worker with updated version (v8) to ensure fresh cache
-                 navigator.serviceWorker.register('sw.js?v=8').catch(function(err) {
+                // Register service worker with updated version (v10) to ensure fresh cache
+                navigator.serviceWorker.register('sw.js?v=10').catch(function(err) {
                     console.error('Service worker registration failed:', err);
                 });
             });
