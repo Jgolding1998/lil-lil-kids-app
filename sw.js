@@ -15,7 +15,10 @@
 // outdated resources from a previous cache.
 // Update the cache version to v6 so browsers fetch the latest assets,
 // including updated styles and scripts for improved pinch‑zoom handling.
-const CACHE_NAME = 'lil-lil-kids-cache-v6';
+// Bump the cache name whenever assets change (e.g., CSS or JS updates).
+// Updating this value forces the service worker to create a new cache
+// and fetch the latest versions of cached files.
+const CACHE_NAME = 'lil-lil-kids-cache-v8';
 
 // List of core files to pre‑cache.  These files are essential for
 // loading the app shell.  We include HTML, CSS, JS and icon.  The
