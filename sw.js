@@ -18,7 +18,13 @@
 // Bump the cache name whenever assets change (e.g., CSS or JS updates).
 // Updating this value forces the service worker to create a new cache
 // and fetch the latest versions of cached files.
-const CACHE_NAME = 'lil-lil-kids-cache-v8';
+// Bump the cache version so browsers fetch the latest assets (v9).
+// Bump the cache name to v10 whenever static assets change.  This forces
+// the service worker to delete the old cache and repopulate it with the
+// latest files, such as updated stylesheets and scripts. Without a
+// version bump the old cached resources would persist and cause
+// stale UI elements to appear (e.g., header size, button styling).  
+const CACHE_NAME = 'lil-lil-kids-cache-v10';
 
 // List of core files to pre‑cache.  These files are essential for
 // loading the app shell.  We include HTML, CSS, JS and icon.  The
